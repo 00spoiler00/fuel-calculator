@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fuel Strategy — Simracing</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0a0c;
+      --bg-panel: #111116;
+      --bg-card: #18181f;
+      --bg-input: #1e1e27;
+      --border: #2a2a35;
+      --border-hover: #3a3a48;
+      --text: #e8e8ef;
+      --text-dim: #8888a0;
+      --text-muted: #555568;
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.15);
+      --accent-bright: #fbbf24;
+      --green: #22c55e;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.15);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.12);
+      --orange: #f97316;
+      --carbon-1: rgba(255,255,255,0.02);
+      --carbon-2: rgba(255,255,255,0.04);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          var(--carbon-1) 0px, var(--carbon-1) 2px,
+          var(--carbon-2) 2px, var(--carbon-2) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          var(--carbon-1) 0px, var(--carbon-1) 2px,
+          var(--carbon-2) 2px, var(--carbon-2) 4px
+        );
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app { position: relative; z-index: 1; }
+
+    .header {
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, transparent 100%);
+    }
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--orange));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header h1 span {
+      color: var(--text-dim);
+      font-weight: 400;
+      font-size: 0.9rem;
+      margin-left: 0.5rem;
+    }
+
+    .sim-selector {
+      margin-left: auto;
+      display: flex;
+      gap: 0.25rem;
+      background: var(--bg-input);
+      border-radius: 8px;
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .sim-btn {
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .sim-btn:hover { color: var(--text); background: var(--bg-card); }
+    .sim-btn.active {
+      background: var(--accent);
+      color: var(--bg-deep);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: calc(100vh - 70px);
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      padding: 1.25rem;
+      border-right: 1px solid var(--border);
+      background: var(--bg-panel);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .input-group {
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .input-group:hover { border-color: var(--border-hover); }
+
+    .input-group-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .input-group-title::before {
+      content: '';
+      width: 3px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .field {
+      margin-bottom: 0.75rem;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.35rem;
+    }
+
+    .field label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+
+    .field-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .slider-wrap {
+      position: relative;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-input);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-glow), 0 2px 4px rgba(0,0,0,0.3);
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px var(--accent-glow), 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .main-content {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+
+    .verdict-card {
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .verdict-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      background: radial-gradient(ellipse at 30% 50%, currentColor 0%, transparent 70%);
+    }
+
+    .verdict-ok {
+      border-color: rgba(34, 197, 94, 0.3);
+      color: var(--green);
+      background: var(--bg-card);
+    }
+
+    .verdict-fail {
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--red);
+      background: var(--bg-card);
+    }
+
+    .verdict-tight {
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--accent);
+      background: var(--bg-card);
+    }
+
+    .verdict-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .verdict-icon {
+      font-size: 1.5rem;
+    }
+
+    .verdict-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .verdict-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-unit {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      margin-left: 0.15rem;
+    }
+
+    .stat-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Gauge */
+    .gauge-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .gauge-bar-wrap {
+      position: relative;
+      height: 48px;
+      background: var(--bg-input);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 0.75rem;
+    }
+
+    .gauge-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 8px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    }
+
+    .gauge-fill.ok { background: linear-gradient(90deg, rgba(34,197,94,0.6), rgba(34,197,94,0.3)); }
+    .gauge-fill.tight { background: linear-gradient(90deg, rgba(245,158,11,0.6), rgba(245,158,11,0.3)); }
+    .gauge-fill.fail { background: linear-gradient(90deg, rgba(239,68,68,0.6), rgba(239,68,68,0.3)); }
+
+    .gauge-needed-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--text);
+      transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 2;
+    }
+
+    .gauge-needed-line::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Pit Strategy */
+    .pit-strategy {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .pit-timeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 0.75rem;
+      height: 40px;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stint {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--bg-deep);
+      position: relative;
+      transition: flex 0.5s;
+      min-width: 30px;
+    }
+
+    .stint-1 { background: linear-gradient(135deg, var(--accent), var(--orange)); }
+    .stint-2 { background: linear-gradient(135deg, var(--blue), #6366f1); }
+    .stint-3 { background: linear-gradient(135deg, var(--green), #10b981); }
+    .stint-pit {
+      width: 3px;
+      min-width: 3px;
+      flex: none !important;
+      background: var(--text);
+      opacity: 0.5;
+    }
+
+    .pit-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .pit-detail {
+      background: var(--bg-input);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+
+    .pit-detail-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .pit-detail-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 0.15rem;
+    }
+
+    /* Fuel save mode */
+    .save-mode {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .save-feasible { border-color: rgba(34, 197, 94, 0.2); }
+    .save-hard { border-color: rgba(245, 158, 11, 0.2); }
+    .save-impossible { border-color: rgba(239, 68, 68, 0.2); }
+
+    .save-bar-wrap {
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.75rem;
+    }
+
+    .save-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s, background 0.3s;
+    }
+
+    .quick-ref {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .ref-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .ref-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ref-item:last-child { border-bottom: none; }
+
+    .ref-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .ref-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-out both;
+    }
+
+    .fade-in-1 { animation-delay: 0.05s; }
+    .fade-in-2 { animation-delay: 0.1s; }
+    .fade-in-3 { animation-delay: 0.15s; }
+    .fade-in-4 { animation-delay: 0.2s; }
+    .fade-in-5 { animation-delay: 0.25s; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+    /* Number input inline */
+    .inline-input {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      width: 55px;
+      padding: 0.15rem 0.3rem;
+      text-align: right;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .inline-input:focus { border-color: var(--accent); }
+    .inline-input::-webkit-inner-spin-button { opacity: 0; }
+
+    /* Color helpers */
+    .c-green { color: var(--green); }
+    .c-red { color: var(--red); }
+    .c-accent { color: var(--accent); }
+    .c-blue { color: var(--blue); }
+
+    .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-green { background: var(--green-glow); color: var(--green); }
+    .tag-red { background: var(--red-glow); color: var(--red); }
+    .tag-accent { background: var(--accent-glow); color: var(--accent); }
+    .tag-blue { background: var(--blue-glow); color: var(--blue); }
+
+    .disclaimer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-icon">⛽</div>
+    <h1>Fuel Strategy <span>Simracing Calculator</span></h1>
+    <div class="sim-selector">
+      <button
+        v-for="sim in sims"
+        :key="sim.id"
+        class="sim-btn"
+        :class="{ active: selectedSim === sim.id }"
+        @click="selectedSim = sim.id"
+      >{{ sim.label }}</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR: INPUTS -->
+    <div class="sidebar">
+      <div class="input-group">
+        <div class="input-group-title">Cursa</div>
+        <div class="field">
+          <div class="field-header">
+            <label>Duració de la cursa</label>
+            <span class="field-value">{{ raceDuration }} min</span>
+          </div>
+          <input type="range" v-model.number="raceDuration" min="5" max="240" step="1">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Volta de formació</label>
+            <span class="field-value">{{ formationLap ? 'Sí' : 'No' }}</span>
+          </div>
+          <input type="range" v-model.number="formationLap" min="0" max="1" step="1">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-group-title">El meu cotxe</div>
+        <div class="field">
+          <div class="field-header">
+            <label>Dipòsit (litres)</label>
+            <span class="field-value">{{ tankCapacity }} L</span>
+          </div>
+          <input type="range" v-model.number="tankCapacity" min="10" max="150" step="1">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Combustible inicial</label>
+            <span class="field-value">{{ startFuel }} L</span>
+          </div>
+          <input type="range" v-model.number="startFuel" min="1" :max="tankCapacity" step="0.5">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Consum per volta</label>
+            <span class="field-value">{{ fuelPerLap.toFixed(2) }} L/v</span>
+          </div>
+          <input type="range" v-model.number="fuelPerLap" min="0.5" max="15" step="0.05">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-group-title">Temps per volta</div>
+        <div class="field">
+          <div class="field-header">
+            <label>El meu temps</label>
+            <span class="field-value">{{ formatTime(myLapTime) }}</span>
+          </div>
+          <input type="range" v-model.number="myLapTime" min="30" max="600" step="0.5">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Temps del líder</label>
+            <span class="field-value">{{ formatTime(leaderLapTime) }}</span>
+          </div>
+          <input type="range" v-model.number="leaderLapTime" min="30" max="600" step="0.5">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-group-title">Opcions</div>
+        <div class="field">
+          <div class="field-header">
+            <label>Marge de seguretat</label>
+            <span class="field-value">{{ safetyMargin }} volta{{ safetyMargin !== 1 ? 'es' : '' }}</span>
+          </div>
+          <input type="range" v-model.number="safetyMargin" min="0" max="5" step="0.5">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Temps de pit stop</label>
+            <span class="field-value">{{ pitStopTime }} s</span>
+          </div>
+          <input type="range" v-model.number="pitStopTime" min="10" max="120" step="1">
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN: RESULTS -->
+    <div class="main-content">
+      <!-- Verdict -->
+      <div
+        class="verdict-card fade-in fade-in-1"
+        :class="verdictClass"
+      >
+        <div class="verdict-header">
+          <span class="verdict-icon">{{ verdictIcon }}</span>
+          <span class="verdict-title">{{ verdictTitle }}</span>
+          <span class="tag" :class="verdictTagClass" style="margin-left: auto;">{{ verdictTag }}</span>
+        </div>
+        <div class="verdict-subtitle">{{ verdictText }}</div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="section-title fade-in fade-in-2">Dades de cursa</div>
+      <div class="stats-grid fade-in fade-in-2">
+        <div class="stat-card">
+          <div class="stat-label">Voltes totals (líder)</div>
+          <div class="stat-value">{{ totalLaps }}</div>
+          <div class="stat-note" v-if="formationLap">+1 formació</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Les meves voltes</div>
+          <div class="stat-value">{{ myTotalLaps }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Fuel necessari</div>
+          <div class="stat-value" :class="fuelNeeded > startFuel ? 'c-red' : 'c-green'">
+            {{ fuelNeeded.toFixed(1) }}<span class="stat-unit">L</span>
+          </div>
+          <div class="stat-note">amb marge de {{ safetyMargin }} v</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sobrant / Faltant</div>
+          <div class="stat-value" :class="fuelDelta >= 0 ? 'c-green' : 'c-red'">
+            {{ fuelDelta >= 0 ? '+' : '' }}{{ fuelDelta.toFixed(1) }}<span class="stat-unit">L</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gap total vs líder</div>
+          <div class="stat-value c-accent">
+            {{ totalGap >= 0 ? '+' : '' }}{{ totalGap.toFixed(1) }}<span class="stat-unit">s</span>
+          </div>
+          <div class="stat-note">{{ gapPerLap.toFixed(2) }}s/volta</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pes combustible</div>
+          <div class="stat-value">
+            {{ fuelWeight.toFixed(1) }}<span class="stat-unit">kg</span>
+          </div>
+          <div class="stat-note">~{{ currentSimData.fuelDensity }} kg/L</div>
+        </div>
+      </div>
+
+      <!-- Fuel Gauge -->
+      <div class="section-title fade-in fade-in-3">Dipòsit</div>
+      <div class="gauge-container fade-in fade-in-3">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-size: 0.85rem; font-weight: 600;">{{ startFuel }} L <span style="color: var(--text-dim); font-weight: 400;">de</span> {{ tankCapacity }} L</span>
+          <span class="tag" :class="gaugeTagClass">{{ Math.round(startFuel / tankCapacity * 100) }}%</span>
+        </div>
+        <div class="gauge-bar-wrap">
+          <div
+            class="gauge-fill"
+            :class="gaugeStatus"
+            :style="{ width: Math.min(startFuel / tankCapacity * 100, 100) + '%' }"
+          ></div>
+          <div
+            v-if="fuelNeeded <= tankCapacity"
+            class="gauge-needed-line"
+            :data-label="'Necessari: ' + fuelNeeded.toFixed(1) + 'L'"
+            :style="{ left: Math.min(fuelNeeded / tankCapacity * 100, 100) + '%' }"
+          ></div>
+        </div>
+        <div class="gauge-labels">
+          <span>0 L</span>
+          <span>{{ tankCapacity }} L</span>
+        </div>
+      </div>
+
+      <!-- Pit Strategy (only if needed) -->
+      <template v-if="needsPit">
+        <div class="section-title fade-in fade-in-4">Estratègia de pit</div>
+        <div class="pit-strategy fade-in fade-in-4">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.9rem; font-weight: 600;">{{ pitStops }} parada{{ pitStops > 1 ? 'es' : '' }}</span>
+            <span class="tag tag-blue">PIT</span>
+          </div>
+          <div class="pit-timeline">
+            <template v-for="(stint, i) in stints" :key="i">
+              <div
+                class="stint"
+                :class="'stint-' + (i + 1)"
+                :style="{ flex: stint.laps }"
+              >
+                {{ stint.laps }}v · {{ stint.fuel.toFixed(0) }}L
+              </div>
+              <div v-if="i < stints.length - 1" class="stint-pit"></div>
+            </template>
+          </div>
+          <div class="pit-details">
+            <template v-for="(pit, i) in pitInfo" :key="i">
+              <div class="pit-detail">
+                <div class="pit-detail-label">Pit #{{ i + 1 }} — Volta</div>
+                <div class="pit-detail-value c-blue">{{ pit.atLap }}</div>
+              </div>
+              <div class="pit-detail">
+                <div class="pit-detail-label">Afegir</div>
+                <div class="pit-detail-value c-accent">{{ pit.addFuel.toFixed(1) }} L</div>
+              </div>
+            </template>
+            <div class="pit-detail">
+              <div class="pit-detail-label">Temps perdut total</div>
+              <div class="pit-detail-value c-red">{{ (pitStops * pitStopTime).toFixed(0) }}s</div>
+            </div>
+            <div class="pit-detail">
+              <div class="pit-detail-label">Fuel en arribar al pit</div>
+              <div class="pit-detail-value c-accent">~{{ fuelAtPit.toFixed(1) }} L</div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Save Mode (when close) -->
+      <template v-if="showSaveMode">
+        <div class="section-title fade-in fade-in-5">Mode estalvi</div>
+        <div class="save-mode fade-in fade-in-5" :class="saveModeClass">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.9rem; font-weight: 600;">
+              Estalviar {{ saveLitersPerLap.toFixed(3) }} L/volta
+            </span>
+            <span class="tag" :class="saveFeasibilityTag">{{ saveFeasibilityLabel }}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.5rem;">
+            Reducció del {{ savePercent.toFixed(1) }}% del consum per evitar {{ pitStops }} parada{{ pitStops > 1 ? 'es' : '' }}
+          </div>
+          <div class="save-bar-wrap">
+            <div
+              class="save-bar"
+              :style="{
+                width: Math.min(savePercent, 30) / 30 * 100 + '%',
+                background: savePercent <= 5 ? 'var(--green)' : savePercent <= 15 ? 'var(--accent)' : 'var(--red)'
+              }"
+            ></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 0.3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-muted);">
+            <span>0%</span>
+            <span>5% fàcil</span>
+            <span>15% límit</span>
+            <span>30%+</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- Quick Reference -->
+      <div class="section-title fade-in fade-in-5">Referència ràpida</div>
+      <div class="quick-ref fade-in fade-in-5">
+        <div class="ref-grid">
+          <div class="ref-item">
+            <span class="ref-label">Consum / minut</span>
+            <span class="ref-value c-accent">{{ fuelPerMinute.toFixed(3) }} L</span>
+          </div>
+          <div class="ref-item">
+            <span class="ref-label">Voltes amb fuel actual</span>
+            <span class="ref-value" :class="lapsWithFuel >= totalLaps ? 'c-green' : 'c-red'">{{ lapsWithFuel.toFixed(1) }}</span>
+          </div>
+          <div class="ref-item">
+            <span class="ref-label">Consum volta formació</span>
+            <span class="ref-value c-accent">~{{ formationFuel.toFixed(2) }} L</span>
+          </div>
+          <div class="ref-item">
+            <span class="ref-label">Temps cursa efectiu</span>
+            <span class="ref-value">{{ effectiveRaceTime }}</span>
+          </div>
+          <div class="ref-item">
+            <span class="ref-label">Fuel per 100% carrera</span>
+            <span class="ref-value c-accent">{{ fullRaceFuel.toFixed(1) }} L</span>
+          </div>
+          <div class="ref-item">
+            <span class="ref-label">Fuel recomanat inici</span>
+            <span class="ref-value c-green">{{ recommendedFuel.toFixed(1) }} L</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        Calculadora orientativa · Els consums reals varien segons traçat, climatologia i estil de conducció
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, watch } = Vue
+
+createApp({
+  setup() {
+    const sims = [
+      { id: 'raceroom', label: 'RaceRoom', formationMult: 1.3, fuelDensity: 0.75 },
+      { id: 'acc', label: 'ACC', formationMult: 1.4, fuelDensity: 0.74 },
+      { id: 'iracing', label: 'iRacing', formationMult: 1.2, fuelDensity: 0.75 },
+      { id: 'lmu', label: 'LMU', formationMult: 1.35, fuelDensity: 0.742 },
+      { id: 'custom', label: 'Custom', formationMult: 1.3, fuelDensity: 0.75 },
+    ]
+
+    const selectedSim = ref('raceroom')
+    const raceDuration = ref(30)
+    const formationLap = ref(1)
+    const tankCapacity = ref(80)
+    const startFuel = ref(50)
+    const fuelPerLap = ref(3.2)
+    const myLapTime = ref(105)
+    const leaderLapTime = ref(103)
+    const safetyMargin = ref(1)
+    const pitStopTime = ref(30)
+
+    const currentSimData = computed(() => sims.find(s => s.id === selectedSim.value))
+
+    // Core calculations
+    const raceTimeSeconds = computed(() => raceDuration.value * 60)
+    const totalLaps = computed(() => Math.ceil(raceTimeSeconds.value / leaderLapTime.value))
+    const myTotalLaps = computed(() => Math.ceil(raceTimeSeconds.value / myLapTime.value))
+
+    const formationFuel = computed(() =>
+      formationLap.value ? fuelPerLap.value * currentSimData.value.formationMult : 0
+    )
+
+    const fuelNeeded = computed(() => {
+      const raceLaps = totalLaps.value + safetyMargin.value
+      return raceLaps * fuelPerLap.value + formationFuel.value
+    })
+
+    const fuelDelta = computed(() => startFuel.value - fuelNeeded.value)
+    const needsPit = computed(() => fuelDelta.value < 0)
+
+    const gapPerLap = computed(() => myLapTime.value - leaderLapTime.value)
+    const totalGap = computed(() => gapPerLap.value * totalLaps.value)
+
+    const fuelPerMinute = computed(() => fuelPerLap.value / (myLapTime.value / 60))
+    const lapsWithFuel = computed(() => (startFuel.value - formationFuel.value) / fuelPerLap.value)
+    const fuelWeight = computed(() => startFuel.value * currentSimData.value.fuelDensity)
+    const fullRaceFuel = computed(() => totalLaps.value * fuelPerLap.value + formationFuel.value)
+    const recommendedFuel = computed(() => Math.min(fuelNeeded.value, tankCapacity.value))
+
+    const effectiveRaceTime = computed(() => {
+      const totalSec = totalLaps.value * myLapTime.value
+      const m = Math.floor(totalSec / 60)
+      const s = Math.round(totalSec % 60)
+      return `${m}:${s.toString().padStart(2, '0')}`
+    })
+
+    // Pit strategy
+    const pitStops = computed(() => {
+      if (!needsPit.value) return 0
+      return Math.ceil(fuelNeeded.value / tankCapacity.value - 0.001)  // -epsilon for edge
+    })
+
+    const stints = computed(() => {
+      if (!needsPit.value) return [{ laps: totalLaps.value, fuel: startFuel.value }]
+      const stops = pitStops.value
+      const totalL = totalLaps.value
+      const lapsPerFullTank = Math.floor((tankCapacity.value - formationFuel.value) / fuelPerLap.value)
+      const firstStintLaps = Math.floor((startFuel.value - formationFuel.value) / fuelPerLap.value) - 1 // leave 1 lap margin for pit
+      const result = []
+      let remaining = totalL
+
+      // First stint
+      const s1Laps = Math.min(firstStintLaps, remaining)
+      result.push({ laps: s1Laps, fuel: startFuel.value })
+      remaining -= s1Laps
+
+      // Middle stints
+      for (let i = 1; i < stops; i++) {
+        const sLaps = Math.min(lapsPerFullTank - 1, remaining)
+        result.push({ laps: sLaps, fuel: tankCapacity.value })
+        remaining -= sLaps
+      }
+
+      // Last stint
+      if (remaining > 0) {
+        const lastFuel = remaining * fuelPerLap.value + fuelPerLap.value * safetyMargin.value
+        result.push({ laps: remaining, fuel: Math.min(lastFuel, tankCapacity.value) })
+      }
+
+      return result
+    })
+
+    const pitInfo = computed(() => {
+      if (!needsPit.value) return []
+      const info = []
+      let lapCount = 0
+      for (let i = 0; i < stints.value.length - 1; i++) {
+        lapCount += stints.value[i].laps
+        const nextStint = stints.value[i + 1]
+        info.push({
+          atLap: lapCount,
+          addFuel: nextStint.fuel,
+        })
+      }
+      return info
+    })
+
+    const fuelAtPit = computed(() => {
+      if (!needsPit.value || stints.value.length < 1) return 0
+      const firstStint = stints.value[0]
+      return startFuel.value - formationFuel.value - firstStint.laps * fuelPerLap.value
+    })
+
+    // Save mode
+    const showSaveMode = computed(() => {
+      if (!needsPit.value) return false
+      const deficit = -fuelDelta.value
+      const maxSave = fuelPerLap.value * 0.3 * totalLaps.value
+      return deficit <= maxSave
+    })
+
+    const saveLitersPerLap = computed(() => {
+      if (!needsPit.value) return 0
+      return -fuelDelta.value / totalLaps.value
+    })
+
+    const savePercent = computed(() => {
+      if (fuelPerLap.value === 0) return 0
+      return (saveLitersPerLap.value / fuelPerLap.value) * 100
+    })
+
+    const saveModeClass = computed(() => {
+      if (savePercent.value <= 5) return 'save-feasible'
+      if (savePercent.value <= 15) return 'save-hard'
+      return 'save-impossible'
+    })
+
+    const saveFeasibilityTag = computed(() => {
+      if (savePercent.value <= 5) return 'tag-green'
+      if (savePercent.value <= 15) return 'tag-accent'
+      return 'tag-red'
+    })
+
+    const saveFeasibilityLabel = computed(() => {
+      if (savePercent.value <= 5) return 'Viable'
+      if (savePercent.value <= 15) return 'Difícil'
+      return 'Inviable'
+    })
+
+    // Verdict
+    const verdictClass = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return 'verdict-ok'
+      if (!needsPit.value) return 'verdict-tight'
+      return 'verdict-fail'
+    })
+
+    const verdictIcon = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return '✓'
+      if (!needsPit.value) return '⚠'
+      return '✗'
+    })
+
+    const verdictTitle = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return 'Arribaràs sense problemes'
+      if (!needsPit.value) return 'Arribaràs just'
+      return 'No arribaràs sense parar'
+    })
+
+    const verdictTag = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return 'OK'
+      if (!needsPit.value) return 'JUST'
+      return pitStops.value + ' PIT'
+    })
+
+    const verdictTagClass = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return 'tag-green'
+      if (!needsPit.value) return 'tag-accent'
+      return 'tag-red'
+    })
+
+    const verdictText = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) {
+        return `Et sobraran ${fuelDelta.value.toFixed(1)}L (~${(fuelDelta.value / fuelPerLap.value).toFixed(1)} voltes extra). Cursa de ${totalLaps.value} voltes basada en el ritme del líder.`
+      }
+      if (!needsPit.value) {
+        return `Arribaràs amb ${fuelDelta.value.toFixed(1)}L de marge (${(fuelDelta.value / fuelPerLap.value).toFixed(1)} voltes). Considera portar una mica més per seguretat.`
+      }
+      return `Necessites ${fuelNeeded.value.toFixed(1)}L per la cursa i portes ${startFuel.value}L. Et falten ${(-fuelDelta.value).toFixed(1)}L. Caldrà${pitStops.value > 1 ? ' ' + pitStops.value + ' parades' : ' 1 parada'} a boxes.`
+    })
+
+    // Gauge
+    const gaugeStatus = computed(() => {
+      if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) return 'ok'
+      if (!needsPit.value) return 'tight'
+      return 'fail'
+    })
+
+    const gaugeTagClass = computed(() => {
+      const pct = startFuel.value / tankCapacity.value
+      if (pct > 0.7) return 'tag-green'
+      if (pct > 0.4) return 'tag-accent'
+      return 'tag-red'
+    })
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60)
+      const s = (seconds % 60).toFixed(1)
+      return `${m}:${s.padStart(4, '0')}`
+    }
+
+    // Clamp startFuel when tankCapacity changes
+    watch(tankCapacity, (newCap) => {
+      if (startFuel.value > newCap) startFuel.value = newCap
+    })
+
+    return {
+      sims, selectedSim, raceDuration, formationLap, tankCapacity,
+      startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
+      pitStopTime, currentSimData,
+      totalLaps, myTotalLaps, formationFuel, fuelNeeded, fuelDelta,
+      needsPit, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
+      fuelWeight, fullRaceFuel, recommendedFuel, effectiveRaceTime,
+      pitStops, stints, pitInfo, fuelAtPit,
+      showSaveMode, saveLitersPerLap, savePercent, saveModeClass,
+      saveFeasibilityTag, saveFeasibilityLabel,
+      verdictClass, verdictIcon, verdictTitle, verdictTag, verdictTagClass, verdictText,
+      gaugeStatus, gaugeTagClass,
+      formatTime,
+    }
+  }
+}).mount('#app')
+</script>
+</body>
+</html>
