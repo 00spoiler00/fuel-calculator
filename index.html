@@ -642,6 +642,211 @@
       color: var(--text-muted);
       border-top: 1px solid var(--border);
     }
+
+    .mode-toggle {
+      display: flex;
+      gap: 0.25rem;
+      background: var(--bg-input);
+      border-radius: 6px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      margin-bottom: 0.75rem;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .mode-btn:hover { color: var(--text); }
+    .mode-btn.active {
+      background: var(--accent);
+      color: var(--bg-deep);
+    }
+
+    .copy-lap-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      padding: 0.1rem 0.35rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .copy-lap-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .auto-result {
+      background: var(--bg-input);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .auto-result-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .auto-result-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Battle section */
+    .battle-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .battle-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .battle-card.battle-win::before {
+      background: radial-gradient(ellipse at 20% 50%, var(--green) 0%, transparent 70%);
+    }
+
+    .battle-card.battle-lose::before {
+      background: radial-gradient(ellipse at 20% 50%, var(--red) 0%, transparent 70%);
+    }
+
+    .battle-bar-container {
+      position: relative;
+      height: 56px;
+      margin: 1rem 0 0.5rem;
+    }
+
+    .battle-bar-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-input);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .battle-bar-me, .battle-bar-leader {
+      position: absolute;
+      top: 0;
+      height: 50%;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 60px;
+    }
+
+    .battle-bar-me {
+      left: 0;
+      top: 0;
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.5), rgba(59, 130, 246, 0.2));
+      color: var(--blue);
+      border-radius: 8px 4px 0 0;
+    }
+
+    .battle-bar-leader {
+      left: 0;
+      top: 50%;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.5), rgba(239, 68, 68, 0.2));
+      color: var(--red);
+      border-radius: 0 0 4px 8px;
+    }
+
+    .battle-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
+
+    .battle-result {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-input);
+      border-radius: 8px;
+    }
+
+    .battle-result-icon {
+      font-size: 1.3rem;
+    }
+
+    .battle-result-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .battle-result-detail {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.15rem;
+    }
+
+    .battle-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .battle-col-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.3rem;
+    }
+
+    .battle-col-me { color: var(--blue); }
+    .battle-col-leader { color: var(--red); }
+
+    .battle-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem 0;
+      font-size: 0.75rem;
+    }
+
+    .battle-row-label { color: var(--text-dim); }
+    .battle-row-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -725,6 +930,24 @@
       </div>
 
       <div class="input-group">
+        <div class="input-group-title">Estratègia del líder</div>
+        <div class="field">
+          <div class="field-header">
+            <label>Parades del líder</label>
+            <span class="field-value">{{ leaderPitStops }}</span>
+          </div>
+          <input type="range" v-model.number="leaderPitStops" min="0" max="5" step="1">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Consum líder (L/volta)</label>
+            <span class="field-value">{{ leaderFuelPerLap.toFixed(2) }} L/v</span>
+          </div>
+          <input type="range" v-model.number="leaderFuelPerLap" min="0.5" max="15" step="0.05">
+        </div>
+      </div>
+
+      <div class="input-group">
         <div class="input-group-title">Opcions</div>
         <div class="field">
           <div class="field-header">
@@ -734,11 +957,58 @@
           <input type="range" v-model.number="safetyMargin" min="0" max="5" step="0.5">
         </div>
         <div class="field">
-          <div class="field-header">
-            <label>Temps de pit stop</label>
-            <span class="field-value">{{ pitStopTime }} s</span>
+          <label style="display:block; margin-bottom: 0.35rem;">Temps de pit stop</label>
+          <div class="mode-toggle">
+            <button class="mode-btn" :class="{ active: pitStopMode === 'manual' }" @click="pitStopMode = 'manual'">Manual</button>
+            <button class="mode-btn" :class="{ active: pitStopMode === 'auto' }" @click="pitStopMode = 'auto'">Automàtic</button>
           </div>
-          <input type="range" v-model.number="pitStopTime" min="10" max="120" step="1">
+
+          <!-- Manual mode -->
+          <template v-if="pitStopMode === 'manual'">
+            <div class="field-header">
+              <label>Temps perdut</label>
+              <span class="field-value">{{ pitStopTime }} s</span>
+            </div>
+            <input type="range" v-model.number="pitStopTime" min="10" max="120" step="1">
+          </template>
+
+          <!-- Auto mode -->
+          <template v-else>
+            <div class="field" style="margin-bottom: 0.5rem;">
+              <div class="field-header">
+                <label>Volta entrada box</label>
+                <span>
+                  <button class="copy-lap-btn" @click="pitEntryLap = myLapTime">El meu temps</button>
+                  <span class="field-value" style="margin-left: 0.3rem;">{{ formatTime(pitEntryLap) }}</span>
+                </span>
+              </div>
+              <input type="range" v-model.number="pitEntryLap" min="30" max="300" step="0.5">
+            </div>
+            <div class="field" style="margin-bottom: 0.5rem;">
+              <div class="field-header">
+                <label>Volta sortida box</label>
+                <span>
+                  <button class="copy-lap-btn" @click="pitExitLap = myLapTime">El meu temps</button>
+                  <span class="field-value" style="margin-left: 0.3rem;">{{ formatTime(pitExitLap) }}</span>
+                </span>
+              </div>
+              <input type="range" v-model.number="pitExitLap" min="30" max="300" step="0.5">
+            </div>
+            <div class="field">
+              <div class="field-header">
+                <label>Volta sense box</label>
+                <span>
+                  <button class="copy-lap-btn" @click="pitNormalLap = myLapTime">El meu temps</button>
+                  <span class="field-value" style="margin-left: 0.3rem;">{{ formatTime(pitNormalLap) }}</span>
+                </span>
+              </div>
+              <input type="range" v-model.number="pitNormalLap" min="30" max="300" step="0.5">
+            </div>
+            <div class="auto-result">
+              <span class="auto-result-label">Temps perdut</span>
+              <span class="auto-result-value">{{ Math.max(0, effectivePitStopTime).toFixed(1) }} s</span>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -756,6 +1026,93 @@
           <span class="tag" :class="verdictTagClass" style="margin-left: auto;">{{ verdictTag }}</span>
         </div>
         <div class="verdict-subtitle">{{ verdictText }}</div>
+      </div>
+
+      <!-- Battle vs Leader -->
+      <div class="section-title fade-in fade-in-2">Batalla vs líder</div>
+      <div class="battle-card fade-in fade-in-2" :class="battleDelta <= 0 ? 'battle-win' : 'battle-lose'">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.9rem; font-weight: 600;">Comparativa amb estratègies de pit</span>
+          <span class="tag" :class="battleDelta <= 0 ? 'tag-green' : 'tag-red'">
+            {{ battleDelta <= 0 ? 'GUANYES' : 'PERDS' }}
+          </span>
+        </div>
+
+        <!-- Visual bar comparison -->
+        <div class="battle-bar-container">
+          <div class="battle-bar-bg">
+            <div class="battle-bar-me" :style="{ width: myBarWidth + '%' }">
+              Jo · {{ formatRaceTime(myTotalRaceTime) }}
+            </div>
+            <div class="battle-bar-leader" :style="{ width: leaderBarWidth + '%' }">
+              Líder · {{ formatRaceTime(leaderTotalRaceTime) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div class="battle-result">
+          <span class="battle-result-icon">{{ battleDelta <= 0 ? '🏆' : '🏁' }}</span>
+          <div>
+            <div class="battle-result-text" :class="battleDelta <= 0 ? 'c-green' : 'c-red'">
+              {{ battleDelta <= 0 ? 'Guanyes' : 'Perds' }} per {{ Math.abs(battleDelta).toFixed(1) }}s
+              <span style="color: var(--text-dim); font-weight: 400;">({{ formatRaceTime(Math.abs(battleDelta)) }})</span>
+            </div>
+            <div class="battle-result-detail">
+              {{ battleExplanation }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Breakdown -->
+        <div class="battle-breakdown">
+          <div>
+            <div class="battle-col-header battle-col-me">Jo</div>
+            <div class="battle-row">
+              <span class="battle-row-label">Voltes</span>
+              <span class="battle-row-value">{{ totalLaps }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Temps/volta</span>
+              <span class="battle-row-value">{{ formatTime(myLapTime) }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Pit stops</span>
+              <span class="battle-row-value">{{ myEffectivePitStops }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Temps pits</span>
+              <span class="battle-row-value">{{ (myEffectivePitStops * effectivePitStopTime).toFixed(0) }}s</span>
+            </div>
+            <div class="battle-row" style="border-top: 1px solid var(--border); padding-top: 0.3rem; margin-top: 0.2rem;">
+              <span class="battle-row-label">Total</span>
+              <span class="battle-row-value c-blue">{{ formatRaceTime(myTotalRaceTime) }}</span>
+            </div>
+          </div>
+          <div>
+            <div class="battle-col-header battle-col-leader">Líder</div>
+            <div class="battle-row">
+              <span class="battle-row-label">Voltes</span>
+              <span class="battle-row-value">{{ totalLaps }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Temps/volta</span>
+              <span class="battle-row-value">{{ formatTime(leaderLapTime) }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Pit stops</span>
+              <span class="battle-row-value">{{ leaderPitStops }}</span>
+            </div>
+            <div class="battle-row">
+              <span class="battle-row-label">Temps pits</span>
+              <span class="battle-row-value">{{ (leaderPitStops * effectivePitStopTime).toFixed(0) }}s</span>
+            </div>
+            <div class="battle-row" style="border-top: 1px solid var(--border); padding-top: 0.3rem; margin-top: 0.2rem;">
+              <span class="battle-row-label">Total</span>
+              <span class="battle-row-value c-red">{{ formatRaceTime(leaderTotalRaceTime) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Stats Grid -->
@@ -858,7 +1215,7 @@
             </template>
             <div class="pit-detail">
               <div class="pit-detail-label">Temps perdut total</div>
-              <div class="pit-detail-value c-red">{{ (pitStops * pitStopTime).toFixed(0) }}s</div>
+              <div class="pit-detail-value c-red">{{ (pitStops * effectivePitStopTime).toFixed(0) }}s</div>
             </div>
             <div class="pit-detail">
               <div class="pit-detail-label">Fuel en arribar al pit</div>
@@ -940,6 +1297,15 @@
 <script>
 const { createApp, ref, computed, watch } = Vue
 
+const STORAGE_KEY = 'fuel-strategy-params'
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
+}
+
 createApp({
   setup() {
     const sims = [
@@ -950,18 +1316,57 @@ createApp({
       { id: 'custom', label: 'Custom', formationMult: 1.3, fuelDensity: 0.75 },
     ]
 
-    const selectedSim = ref('raceroom')
-    const raceDuration = ref(30)
-    const formationLap = ref(1)
-    const tankCapacity = ref(80)
-    const startFuel = ref(50)
-    const fuelPerLap = ref(3.2)
-    const myLapTime = ref(105)
-    const leaderLapTime = ref(103)
-    const safetyMargin = ref(1)
-    const pitStopTime = ref(30)
+    const saved = loadSaved()
+
+    const selectedSim = ref(saved.selectedSim ?? 'raceroom')
+    const raceDuration = ref(saved.raceDuration ?? 30)
+    const formationLap = ref(saved.formationLap ?? 1)
+    const tankCapacity = ref(saved.tankCapacity ?? 80)
+    const startFuel = ref(saved.startFuel ?? 50)
+    const fuelPerLap = ref(saved.fuelPerLap ?? 3.2)
+    const myLapTime = ref(saved.myLapTime ?? 105)
+    const leaderLapTime = ref(saved.leaderLapTime ?? 103)
+    const safetyMargin = ref(saved.safetyMargin ?? 1)
+    const pitStopTime = ref(saved.pitStopTime ?? 30)
+    const pitStopMode = ref(saved.pitStopMode ?? 'manual')
+    const pitEntryLap = ref(saved.pitEntryLap ?? 120)
+    const pitExitLap = ref(saved.pitExitLap ?? 120)
+    const pitNormalLap = ref(saved.pitNormalLap ?? 105)
+    const leaderPitStops = ref(saved.leaderPitStops ?? 0)
+    const leaderFuelPerLap = ref(saved.leaderFuelPerLap ?? 3.2)
+
+    // Persist all params to localStorage
+    const allParams = computed(() => ({
+      selectedSim: selectedSim.value,
+      raceDuration: raceDuration.value,
+      formationLap: formationLap.value,
+      tankCapacity: tankCapacity.value,
+      startFuel: startFuel.value,
+      fuelPerLap: fuelPerLap.value,
+      myLapTime: myLapTime.value,
+      leaderLapTime: leaderLapTime.value,
+      safetyMargin: safetyMargin.value,
+      pitStopTime: pitStopTime.value,
+      pitStopMode: pitStopMode.value,
+      pitEntryLap: pitEntryLap.value,
+      pitExitLap: pitExitLap.value,
+      pitNormalLap: pitNormalLap.value,
+      leaderPitStops: leaderPitStops.value,
+      leaderFuelPerLap: leaderFuelPerLap.value,
+    }))
+
+    watch(allParams, (val) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+    }, { deep: true })
 
     const currentSimData = computed(() => sims.find(s => s.id === selectedSim.value))
+
+    const effectivePitStopTime = computed(() => {
+      if (pitStopMode.value === 'auto') {
+        return Math.max(0, (pitEntryLap.value + pitExitLap.value) - 2 * pitNormalLap.value)
+      }
+      return pitStopTime.value
+    })
 
     // Core calculations
     const raceTimeSeconds = computed(() => raceDuration.value * 60)
@@ -1144,6 +1549,45 @@ createApp({
       return 'tag-red'
     })
 
+    // Battle vs Leader
+    const myEffectivePitStops = computed(() => needsPit.value ? pitStops.value : 0)
+    const myTotalRaceTime = computed(() =>
+      totalLaps.value * myLapTime.value + myEffectivePitStops.value * effectivePitStopTime.value
+    )
+    const leaderTotalRaceTime = computed(() =>
+      totalLaps.value * leaderLapTime.value + leaderPitStops.value * effectivePitStopTime.value
+    )
+    const battleDelta = computed(() => myTotalRaceTime.value - leaderTotalRaceTime.value)
+
+    const myBarWidth = computed(() => {
+      const maxTime = Math.max(myTotalRaceTime.value, leaderTotalRaceTime.value)
+      return (myTotalRaceTime.value / maxTime) * 95
+    })
+    const leaderBarWidth = computed(() => {
+      const maxTime = Math.max(myTotalRaceTime.value, leaderTotalRaceTime.value)
+      return (leaderTotalRaceTime.value / maxTime) * 95
+    })
+
+    const battleExplanation = computed(() => {
+      const paceGap = (myLapTime.value - leaderLapTime.value) * totalLaps.value
+      const pitGap = (myEffectivePitStops.value - leaderPitStops.value) * effectivePitStopTime.value
+      const parts = []
+      if (Math.abs(paceGap) > 0.5) {
+        parts.push(`${paceGap > 0 ? 'Perds' : 'Guanyes'} ${Math.abs(paceGap).toFixed(1)}s per ritme`)
+      }
+      if (Math.abs(pitGap) > 0.5) {
+        parts.push(`${pitGap > 0 ? 'perds' : 'guanyes'} ${Math.abs(pitGap).toFixed(0)}s per pit stops (${myEffectivePitStops.value} vs ${leaderPitStops.value})`)
+      }
+      return parts.join(', ') || 'Mateixa estratègia i ritme'
+    })
+
+    function formatRaceTime(seconds) {
+      const abs = Math.abs(seconds)
+      const m = Math.floor(abs / 60)
+      const s = Math.round(abs % 60)
+      return `${m}:${s.toString().padStart(2, '0')}`
+    }
+
     function formatTime(seconds) {
       const m = Math.floor(seconds / 60)
       const s = (seconds % 60).toFixed(1)
@@ -1158,7 +1602,8 @@ createApp({
     return {
       sims, selectedSim, raceDuration, formationLap, tankCapacity,
       startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
-      pitStopTime, currentSimData,
+      pitStopTime, pitStopMode, pitEntryLap, pitExitLap, pitNormalLap,
+      effectivePitStopTime, leaderPitStops, leaderFuelPerLap, currentSimData,
       totalLaps, myTotalLaps, formationFuel, fuelNeeded, fuelDelta,
       needsPit, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
       fuelWeight, fullRaceFuel, recommendedFuel, effectiveRaceTime,
@@ -1167,7 +1612,9 @@ createApp({
       saveFeasibilityTag, saveFeasibilityLabel,
       verdictClass, verdictIcon, verdictTitle, verdictTag, verdictTagClass, verdictText,
       gaugeStatus, gaugeTagClass,
-      formatTime,
+      myEffectivePitStops, myTotalRaceTime, leaderTotalRaceTime,
+      battleDelta, myBarWidth, leaderBarWidth, battleExplanation,
+      formatTime, formatRaceTime,
     }
   }
 }).mount('#app')
