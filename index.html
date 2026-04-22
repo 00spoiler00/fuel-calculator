@@ -714,6 +714,58 @@
       color: var(--accent);
     }
 
+    .delta-chart {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .delta-chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .delta-chart-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+    }
+    .legend-swatch.legend-me { background: var(--accent); height: 2px; }
+    .legend-swatch.legend-leader {
+      background: repeating-linear-gradient(to right, var(--text-dim) 0 4px, transparent 4px 8px);
+    }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .legend-dot.legend-my-stop { background: var(--accent); }
+    .legend-dot.legend-leader-stop { background: var(--blue); }
+
+    .delta-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .delta-summary {
+      margin-top: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-align: right;
+    }
+
     /* Battle section */
     .battle-card {
       background: var(--bg-card);
@@ -854,7 +906,19 @@
   <div class="header">
     <div class="header-icon">⛽</div>
     <h1>Fuel Strategy <span>Simracing Calculator</span></h1>
-    <div class="sim-selector">
+    <div class="sim-selector" style="margin-left: auto;">
+      <button
+        class="sim-btn"
+        :class="{ active: raceMode === 'normal' }"
+        @click="raceMode = 'normal'"
+      >Normal</button>
+      <button
+        class="sim-btn"
+        :class="{ active: raceMode === 'endurance' }"
+        @click="raceMode = 'endurance'"
+      >Resistència</button>
+    </div>
+    <div class="sim-selector" style="margin-left: 0.5rem;">
       <button
         v-for="sim in sims"
         :key="sim.id"
@@ -873,9 +937,15 @@
         <div class="field">
           <div class="field-header">
             <label>Duració de la cursa</label>
-            <span class="field-value">{{ raceDuration }} min</span>
+            <span class="field-value">{{ raceDurationDisplay }}</span>
           </div>
-          <input type="range" v-model.number="raceDuration" min="5" max="240" step="1">
+          <input
+            type="range"
+            v-model.number="raceDuration"
+            :min="raceMode === 'endurance' ? 60 : 5"
+            :max="raceMode === 'endurance' ? 1440 : 240"
+            :step="raceMode === 'endurance' ? 15 : 1"
+          >
         </div>
         <div class="field">
           <div class="field-header">
@@ -936,7 +1006,7 @@
             <label>Parades del líder</label>
             <span class="field-value">{{ leaderPitStops }}</span>
           </div>
-          <input type="range" v-model.number="leaderPitStops" min="0" max="5" step="1">
+          <input type="range" v-model.number="leaderPitStops" min="0" :max="leaderPitStopsMax" step="1">
         </div>
         <div class="field">
           <div class="field-header">
@@ -944,6 +1014,54 @@
             <span class="field-value">{{ leaderFuelPerLap.toFixed(2) }} L/v</span>
           </div>
           <input type="range" v-model.number="leaderFuelPerLap" min="0.5" max="15" step="0.05">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-group-title">Pneumàtics</div>
+        <div class="field">
+          <div class="field-header">
+            <label>Activar restricció</label>
+            <span class="field-value">{{ tiresEnabled ? 'Sí' : 'No' }}</span>
+          </div>
+          <input type="range" v-model.number="tiresEnabled" min="0" max="1" step="1">
+        </div>
+        <div class="field" v-if="tiresEnabled">
+          <div class="field-header">
+            <label>Vida pneumàtics (jo)</label>
+            <span class="field-value">{{ myTireLife }} v</span>
+          </div>
+          <input type="range" v-model.number="myTireLife" min="5" max="200" step="1">
+        </div>
+        <div class="field" v-if="tiresEnabled">
+          <div class="field-header">
+            <label>Vida pneumàtics (líder)</label>
+            <span class="field-value">{{ leaderTireLife }} v</span>
+          </div>
+          <input type="range" v-model.number="leaderTireLife" min="5" max="200" step="1">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-group-title">Les meves parades</div>
+        <div class="field">
+          <div class="mode-toggle" style="margin-bottom: 0.5rem;">
+            <button class="mode-btn" :class="{ active: myPitStopsMode === 'auto' }" @click="myPitStopsMode = 'auto'">Auto</button>
+            <button class="mode-btn" :class="{ active: myPitStopsMode === 'manual' }" @click="myPitStopsMode = 'manual'">Manual</button>
+          </div>
+          <template v-if="myPitStopsMode === 'auto'">
+            <div class="auto-result">
+              <span class="auto-result-label">Parades calculades</span>
+              <span class="auto-result-value">{{ myPitStopsAuto }}</span>
+            </div>
+          </template>
+          <template v-else>
+            <div class="field-header">
+              <label>Parades</label>
+              <span class="field-value">{{ myPitStopsManual }}</span>
+            </div>
+            <input type="range" v-model.number="myPitStopsManual" min="0" :max="myPitStopsMax" step="1">
+          </template>
         </div>
       </div>
 
@@ -1115,6 +1233,65 @@
         </div>
       </div>
 
+      <!-- Delta Chart -->
+      <div class="section-title fade-in fade-in-2">Deriva vs líder</div>
+      <div class="delta-chart fade-in fade-in-2">
+        <div class="delta-chart-legend">
+          <span><span class="legend-swatch legend-me"></span>Jo</span>
+          <span><span class="legend-swatch legend-leader"></span>Líder (ref. 0)</span>
+          <span><span class="legend-dot legend-my-stop"></span>Les meves parades</span>
+          <span><span class="legend-dot legend-leader-stop"></span>Parades del líder</span>
+        </div>
+        <svg :viewBox="'0 0 ' + 800 + ' ' + 220" preserveAspectRatio="none" class="delta-svg">
+          <!-- Axes frame -->
+          <line :x1="50" :y1="20" :x2="50" :y2="190" stroke="var(--border)" stroke-width="1"/>
+          <line :x1="50" :y1="190" :x2="760" :y2="190" stroke="var(--border)" stroke-width="1"/>
+          <!-- Zero line (leader) -->
+          <line :x1="50" :y1="chartZeroY" :x2="760" :y2="chartZeroY" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text :x="755" :y="chartZeroY - 4" text-anchor="end" fill="var(--text-dim)" font-family="'JetBrains Mono', monospace" font-size="9">líder · 0s</text>
+          <!-- Y axis labels -->
+          <text :x="44" :y="24" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMax) }}</text>
+          <text :x="44" :y="192" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMin) }}</text>
+          <!-- X axis labels -->
+          <text :x="50" :y="208" text-anchor="start" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">v.0</text>
+          <text :x="760" :y="208" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">v.{{ totalLaps }}</text>
+          <!-- My delta polyline -->
+          <polyline
+            v-if="chartPolyline"
+            :points="chartPolyline"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <!-- My pit stop markers -->
+          <circle
+            v-for="(p, i) in chartMyStopPoints"
+            :key="'my-'+i"
+            :cx="p.cx"
+            :cy="p.cy"
+            r="4"
+            fill="var(--accent)"
+            stroke="var(--bg-deep)"
+            stroke-width="1.5"
+          />
+          <!-- Leader pit stop markers -->
+          <circle
+            v-for="(p, i) in chartLeaderStopPoints"
+            :key="'ld-'+i"
+            :cx="p.cx"
+            :cy="p.cy"
+            r="4"
+            fill="var(--blue)"
+            stroke="var(--bg-deep)"
+            stroke-width="1.5"
+          />
+        </svg>
+        <div class="delta-summary">
+          <span>Final: <strong :class="battleDelta > 0 ? 'c-red' : 'c-green'">{{ battleDelta > 0 ? '+' : '' }}{{ battleDelta.toFixed(1) }}s</strong></span>
+        </div>
+      </div>
+
       <!-- Stats Grid -->
       <div class="section-title fade-in fade-in-2">Dades de cursa</div>
       <div class="stats-grid fade-in fade-in-2">
@@ -1182,8 +1359,8 @@
         </div>
       </div>
 
-      <!-- Pit Strategy (only if needed) -->
-      <template v-if="needsPit">
+      <!-- Pit Strategy (shown if any pit stop is needed, fuel or tires) -->
+      <template v-if="anyPitNeeded">
         <div class="section-title fade-in fade-in-4">Estratègia de pit</div>
         <div class="pit-strategy fade-in fade-in-4">
           <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -1205,11 +1382,13 @@
           <div class="pit-details">
             <template v-for="(pit, i) in pitInfo" :key="i">
               <div class="pit-detail">
-                <div class="pit-detail-label">Pit #{{ i + 1 }} — Volta</div>
-                <div class="pit-detail-value c-blue">{{ pit.atLap }}</div>
+                <div class="pit-detail-label">Pit #{{ i + 1 }} — Volta {{ pit.atLap }}</div>
+                <div class="pit-detail-value c-blue">
+                  <span class="tag" :class="pitReasonTagClass(pit.reason)" style="font-size: 0.5rem;">{{ pitReasonLabel(pit.reason) }}</span>
+                </div>
               </div>
               <div class="pit-detail">
-                <div class="pit-detail-label">Afegir</div>
+                <div class="pit-detail-label">Afegir combustible</div>
                 <div class="pit-detail-value c-accent">{{ pit.addFuel.toFixed(1) }} L</div>
               </div>
             </template>
@@ -1252,6 +1431,22 @@
             <span>5% fàcil</span>
             <span>15% límit</span>
             <span>30%+</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- Fuel optimization hint (tires force earlier stop) -->
+      <template v-if="fuelOptimization">
+        <div class="section-title fade-in fade-in-5">Optimització</div>
+        <div class="save-mode save-feasible fade-in fade-in-5">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.9rem; font-weight: 600;">
+              Pots sortir amb {{ fuelOptimization.optimalStart.toFixed(0) }} L
+            </span>
+            <span class="tag tag-green">–{{ fuelOptimization.saveL.toFixed(1) }} L</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">
+            Els pneumàtics et forcen a parar a la volta {{ fuelOptimization.lap }}. Pots estalviar {{ fuelOptimization.saveKg.toFixed(1) }} kg sortint amb menys combustible i repostar en aquesta parada obligatòria.
           </div>
         </div>
       </template>
@@ -1319,6 +1514,7 @@ createApp({
     const saved = loadSaved()
 
     const selectedSim = ref(saved.selectedSim ?? 'raceroom')
+    const raceMode = ref(saved.raceMode ?? 'normal')
     const raceDuration = ref(saved.raceDuration ?? 30)
     const formationLap = ref(saved.formationLap ?? 1)
     const tankCapacity = ref(saved.tankCapacity ?? 80)
@@ -1334,10 +1530,16 @@ createApp({
     const pitNormalLap = ref(saved.pitNormalLap ?? 105)
     const leaderPitStops = ref(saved.leaderPitStops ?? 0)
     const leaderFuelPerLap = ref(saved.leaderFuelPerLap ?? 3.2)
+    const tiresEnabled = ref(saved.tiresEnabled ?? 0)
+    const myTireLife = ref(saved.myTireLife ?? 40)
+    const leaderTireLife = ref(saved.leaderTireLife ?? 40)
+    const myPitStopsMode = ref(saved.myPitStopsMode ?? 'auto')
+    const myPitStopsManual = ref(saved.myPitStopsManual ?? 1)
 
     // Persist all params to localStorage
     const allParams = computed(() => ({
       selectedSim: selectedSim.value,
+      raceMode: raceMode.value,
       raceDuration: raceDuration.value,
       formationLap: formationLap.value,
       tankCapacity: tankCapacity.value,
@@ -1353,6 +1555,11 @@ createApp({
       pitNormalLap: pitNormalLap.value,
       leaderPitStops: leaderPitStops.value,
       leaderFuelPerLap: leaderFuelPerLap.value,
+      tiresEnabled: tiresEnabled.value,
+      myTireLife: myTireLife.value,
+      leaderTireLife: leaderTireLife.value,
+      myPitStopsMode: myPitStopsMode.value,
+      myPitStopsManual: myPitStopsManual.value,
     }))
 
     watch(allParams, (val) => {
@@ -1366,6 +1573,24 @@ createApp({
         return Math.max(0, (pitEntryLap.value + pitExitLap.value) - 2 * pitNormalLap.value)
       }
       return pitStopTime.value
+    })
+
+    const raceDurationDisplay = computed(() => {
+      if (raceMode.value === 'endurance') {
+        const h = Math.floor(raceDuration.value / 60)
+        const m = Math.round(raceDuration.value % 60)
+        return m > 0 ? `${h}h ${m}m` : `${h}h`
+      }
+      return `${raceDuration.value} min`
+    })
+
+    const leaderPitStopsMax = computed(() => raceMode.value === 'endurance' ? 15 : 5)
+    const myPitStopsMax = computed(() => raceMode.value === 'endurance' ? 15 : 8)
+
+    // Clamp raceDuration when switching modes so the slider position is valid
+    watch(raceMode, (mode) => {
+      if (mode === 'endurance' && raceDuration.value < 60) raceDuration.value = 60
+      if (mode === 'normal' && raceDuration.value > 240) raceDuration.value = 240
     })
 
     // Core calculations
@@ -1401,34 +1626,56 @@ createApp({
       return `${m}:${s.toString().padStart(2, '0')}`
     })
 
-    // Pit strategy
-    const pitStops = computed(() => {
+    // Pit strategy — consider both fuel and tires
+    const fuelStops = computed(() => {
       if (!needsPit.value) return 0
       return Math.ceil(fuelNeeded.value / tankCapacity.value - 0.001)  // -epsilon for edge
     })
 
+    const myTireStops = computed(() => {
+      if (!tiresEnabled.value || myTireLife.value <= 0) return 0
+      return Math.max(0, Math.ceil(totalLaps.value / myTireLife.value) - 1)
+    })
+
+    const leaderTireStops = computed(() => {
+      if (!tiresEnabled.value || leaderTireLife.value <= 0) return 0
+      return Math.max(0, Math.ceil(totalLaps.value / leaderTireLife.value) - 1)
+    })
+
+    const myPitStopsAuto = computed(() => Math.max(fuelStops.value, myTireStops.value))
+
+    const pitStops = computed(() => {
+      if (myPitStopsMode.value === 'manual') return myPitStopsManual.value
+      return myPitStopsAuto.value
+    })
+
+    // Needs pit if fuel requires it OR tires force it OR user forced it manually
+    const anyPitNeeded = computed(() => pitStops.value > 0)
+
     const stints = computed(() => {
-      if (!needsPit.value) return [{ laps: totalLaps.value, fuel: startFuel.value }]
       const stops = pitStops.value
       const totalL = totalLaps.value
+      if (stops === 0) return [{ laps: totalL, fuel: startFuel.value }]
+
+      const tireLimit = tiresEnabled.value ? myTireLife.value : Infinity
       const lapsPerFullTank = Math.floor((tankCapacity.value - formationFuel.value) / fuelPerLap.value)
-      const firstStintLaps = Math.floor((startFuel.value - formationFuel.value) / fuelPerLap.value) - 1 // leave 1 lap margin for pit
+      const firstStintFuelLaps = Math.floor((startFuel.value - formationFuel.value) / fuelPerLap.value) - 1 // leave 1 lap margin
       const result = []
       let remaining = totalL
 
-      // First stint
-      const s1Laps = Math.min(firstStintLaps, remaining)
-      result.push({ laps: s1Laps, fuel: startFuel.value })
-      remaining -= s1Laps
+      // First stint — limited by fuel OR tires
+      const s1Laps = Math.min(firstStintFuelLaps, tireLimit, remaining)
+      result.push({ laps: Math.max(1, s1Laps), fuel: startFuel.value })
+      remaining -= result[0].laps
 
-      // Middle stints
+      // Middle stints — each limited by full tank or tire life
       for (let i = 1; i < stops; i++) {
-        const sLaps = Math.min(lapsPerFullTank - 1, remaining)
-        result.push({ laps: sLaps, fuel: tankCapacity.value })
-        remaining -= sLaps
+        const cap = Math.min(lapsPerFullTank - 1, tireLimit, remaining)
+        result.push({ laps: Math.max(1, cap), fuel: tankCapacity.value })
+        remaining -= result[result.length - 1].laps
       }
 
-      // Last stint
+      // Last stint — only need fuel for remaining laps
       if (remaining > 0) {
         const lastFuel = remaining * fuelPerLap.value + fuelPerLap.value * safetyMargin.value
         result.push({ laps: remaining, fuel: Math.min(lastFuel, tankCapacity.value) })
@@ -1438,15 +1685,22 @@ createApp({
     })
 
     const pitInfo = computed(() => {
-      if (!needsPit.value) return []
       const info = []
       let lapCount = 0
+      const tireLife = tiresEnabled.value ? myTireLife.value : Infinity
       for (let i = 0; i < stints.value.length - 1; i++) {
         lapCount += stints.value[i].laps
         const nextStint = stints.value[i + 1]
+        const stintLaps = stints.value[i].laps
+        const forcedByTires = tiresEnabled.value && stintLaps >= tireLife
+        const forcedByFuel = nextStint.fuel > stints.value[i].fuel - stintLaps * fuelPerLap.value + 0.5
+        let reason = 'fuel'
+        if (forcedByTires && forcedByFuel) reason = 'both'
+        else if (forcedByTires) reason = 'tires'
         info.push({
           atLap: lapCount,
           addFuel: nextStint.fuel,
+          reason,
         })
       }
       return info
@@ -1457,6 +1711,130 @@ createApp({
       const firstStint = stints.value[0]
       return startFuel.value - formationFuel.value - firstStint.laps * fuelPerLap.value
     })
+
+    // Leader pit laps — evenly distributed across the race
+    const leaderPitLaps = computed(() => {
+      const n = leaderPitStops.value
+      const total = totalLaps.value
+      if (n <= 0 || total <= 0) return []
+      const laps = []
+      for (let i = 1; i <= n; i++) {
+        laps.push(Math.round((i * total) / (n + 1)))
+      }
+      return laps
+    })
+
+    // Delta chart series — cumulative delta vs leader per lap
+    const deltaSeries = computed(() => {
+      const total = totalLaps.value
+      if (total <= 0) return { points: [], myStops: [], leaderStops: [], yMin: 0, yMax: 0, step: 1 }
+
+      const myStopLaps = (pitInfo.value || []).map(p => p.atLap)
+      const leaderStopLaps = leaderPitLaps.value
+      const gap = gapPerLap.value
+      const pitT = effectivePitStopTime.value
+
+      // Subsample to ~200 points for long races
+      const step = total > 300 ? Math.ceil(total / 200) : 1
+
+      const points = []
+      let delta = 0
+      for (let lap = 0; lap <= total; lap++) {
+        if (lap > 0) {
+          delta += gap
+          if (myStopLaps.includes(lap)) delta += pitT
+          if (leaderStopLaps.includes(lap)) delta -= pitT
+        }
+        if (lap % step === 0 || lap === total || myStopLaps.includes(lap) || leaderStopLaps.includes(lap)) {
+          points.push({ lap, delta })
+        }
+      }
+
+      const values = points.map(p => p.delta)
+      const yMin = Math.min(0, ...values)
+      const yMax = Math.max(0, ...values)
+
+      return { points, myStops: myStopLaps, leaderStops: leaderStopLaps, yMin, yMax, step }
+    })
+
+    const chartWidth = 800
+    const chartHeight = 220
+    const chartPad = { top: 20, right: 40, bottom: 30, left: 50 }
+
+    const chartScale = computed(() => {
+      const d = deltaSeries.value
+      const innerW = chartWidth - chartPad.left - chartPad.right
+      const innerH = chartHeight - chartPad.top - chartPad.bottom
+      const total = totalLaps.value || 1
+      let yMin = d.yMin
+      let yMax = d.yMax
+      // Ensure at least some range
+      if (yMax - yMin < 5) {
+        yMin -= 5
+        yMax += 5
+      }
+      // Symmetric-ish padding
+      const pad = (yMax - yMin) * 0.1
+      yMin -= pad
+      yMax += pad
+      const xOf = (lap) => chartPad.left + (lap / total) * innerW
+      const yOf = (val) => chartPad.top + ((yMax - val) / (yMax - yMin)) * innerH
+      return { xOf, yOf, yMin, yMax, innerW, innerH }
+    })
+
+    const chartPolyline = computed(() => {
+      const { xOf, yOf } = chartScale.value
+      return deltaSeries.value.points.map(p => `${xOf(p.lap).toFixed(1)},${yOf(p.delta).toFixed(1)}`).join(' ')
+    })
+
+    const chartZeroY = computed(() => chartScale.value.yOf(0))
+
+    const chartMyStopPoints = computed(() => {
+      const { xOf, yOf } = chartScale.value
+      const points = deltaSeries.value.points
+      return deltaSeries.value.myStops.map(lap => {
+        const p = points.find(pp => pp.lap === lap) || { lap, delta: 0 }
+        return { cx: xOf(lap), cy: yOf(p.delta), lap }
+      })
+    })
+
+    const chartLeaderStopPoints = computed(() => {
+      const { xOf } = chartScale.value
+      const zeroY = chartZeroY.value
+      return deltaSeries.value.leaderStops.map(lap => ({ cx: xOf(lap), cy: zeroY, lap }))
+    })
+
+    // Fuel optimization hint — when tires force stops earlier than fuel would
+    const fuelOptimization = computed(() => {
+      if (!tiresEnabled.value) return null
+      if (myTireStops.value <= fuelStops.value) return null
+      // Tire stops force us to pit before fuel runs out → can start with less fuel
+      const lapsUntilFirstTireStop = myTireLife.value
+      const optimalStart = Math.min(
+        tankCapacity.value,
+        (lapsUntilFirstTireStop + safetyMargin.value) * fuelPerLap.value + formationFuel.value
+      )
+      const saveL = Math.max(0, startFuel.value - optimalStart)
+      if (saveL < 0.5) return null
+      const saveKg = saveL * currentSimData.value.fuelDensity
+      return {
+        lap: lapsUntilFirstTireStop,
+        optimalStart,
+        saveL,
+        saveKg,
+      }
+    })
+
+    function pitReasonLabel(r) {
+      if (r === 'tires') return 'gomes'
+      if (r === 'both') return 'fuel+gomes'
+      return 'fuel'
+    }
+    function pitReasonTagClass(r) {
+      if (r === 'tires') return 'tag-blue'
+      if (r === 'both') return 'tag-accent'
+      return 'tag-green'
+    }
 
     // Save mode
     const showSaveMode = computed(() => {
@@ -1550,7 +1928,7 @@ createApp({
     })
 
     // Battle vs Leader
-    const myEffectivePitStops = computed(() => needsPit.value ? pitStops.value : 0)
+    const myEffectivePitStops = computed(() => pitStops.value)
     const myTotalRaceTime = computed(() =>
       totalLaps.value * myLapTime.value + myEffectivePitStops.value * effectivePitStopTime.value
     )
@@ -1581,6 +1959,11 @@ createApp({
       return parts.join(', ') || 'Mateixa estratègia i ritme'
     })
 
+    function formatDelta(seconds) {
+      const s = seconds >= 0 ? '+' : '-'
+      return s + Math.abs(seconds).toFixed(0) + 's'
+    }
+
     function formatRaceTime(seconds) {
       const abs = Math.abs(seconds)
       const m = Math.floor(abs / 60)
@@ -1600,21 +1983,29 @@ createApp({
     })
 
     return {
-      sims, selectedSim, raceDuration, formationLap, tankCapacity,
+      sims, selectedSim, raceMode, raceDuration, raceDurationDisplay,
+      leaderPitStopsMax, myPitStopsMax,
+      formationLap, tankCapacity,
       startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
       pitStopTime, pitStopMode, pitEntryLap, pitExitLap, pitNormalLap,
       effectivePitStopTime, leaderPitStops, leaderFuelPerLap, currentSimData,
+      tiresEnabled, myTireLife, leaderTireLife,
+      myPitStopsMode, myPitStopsManual, myPitStopsAuto,
+      fuelStops, myTireStops, leaderTireStops,
       totalLaps, myTotalLaps, formationFuel, fuelNeeded, fuelDelta,
-      needsPit, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
+      needsPit, anyPitNeeded, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
       fuelWeight, fullRaceFuel, recommendedFuel, effectiveRaceTime,
-      pitStops, stints, pitInfo, fuelAtPit,
+      pitStops, stints, pitInfo, fuelAtPit, fuelOptimization,
+      pitReasonLabel, pitReasonTagClass,
       showSaveMode, saveLitersPerLap, savePercent, saveModeClass,
       saveFeasibilityTag, saveFeasibilityLabel,
       verdictClass, verdictIcon, verdictTitle, verdictTag, verdictTagClass, verdictText,
       gaugeStatus, gaugeTagClass,
       myEffectivePitStops, myTotalRaceTime, leaderTotalRaceTime,
       battleDelta, myBarWidth, leaderBarWidth, battleExplanation,
-      formatTime, formatRaceTime,
+      deltaSeries, chartPolyline, chartZeroY, chartScale,
+      chartMyStopPoints, chartLeaderStopPoints,
+      formatTime, formatRaceTime, formatDelta,
     }
   }
 }).mount('#app')
