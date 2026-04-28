@@ -692,6 +692,207 @@
       color: var(--accent);
     }
 
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-top: 0.4rem;
+    }
+
+    .preset-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 500;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg-deep);
+    }
+
+    /* Help button + modal */
+    .help-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-dim);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .help-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .help-modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 820px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .help-modal-header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-panel);
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 2;
+    }
+
+    .help-modal-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .help-close-btn {
+      margin-left: auto;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .help-close-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .help-body {
+      padding: 1.25rem 1.5rem 1.5rem;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .help-tldr {
+      background: var(--bg-card);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.85rem;
+    }
+    .help-tldr strong { color: var(--accent); }
+
+    .help-section {
+      margin-bottom: 1.1rem;
+    }
+
+    .help-section h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .help-section h3::before {
+      content: '';
+      width: 3px;
+      height: 11px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .help-section p {
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .help-section .muted {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .help-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .help-section li {
+      padding: 0.2rem 0 0.2rem 1rem;
+      position: relative;
+      color: var(--text-dim);
+      font-size: 0.82rem;
+    }
+    .help-section li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .help-section li strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .help-formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      color: var(--accent);
+      display: inline-block;
+      margin: 0.2rem 0;
+    }
+
     .auto-result {
       background: var(--bg-input);
       border-radius: 6px;
@@ -927,6 +1128,147 @@
         @click="selectedSim = sim.id"
       >{{ sim.label }}</button>
     </div>
+    <button class="help-btn" @click="showHelp = true" title="Ajuda">?</button>
+  </div>
+
+  <!-- Help Modal -->
+  <div v-if="showHelp" class="help-overlay" @click.self="showHelp = false">
+    <div class="help-modal">
+      <div class="help-modal-header">
+        <span style="font-size: 1.2rem;">⛽</span>
+        <h2>Com funciona la calculadora</h2>
+        <button class="help-close-btn" @click="showHelp = false" title="Tanca">✕</button>
+      </div>
+      <div class="help-body">
+
+        <div class="help-tldr">
+          <strong>TL;DR ·</strong> Introdueix la <strong>durada de la cursa</strong>, el teu <strong>consum per volta</strong> i el teu <strong>temps per volta</strong>. La calculadora et diu si arribes amb el fuel que portes, quantes parades necessites, on les has de fer i si guanyaries o perdries la batalla contra el líder amb la teva estratègia.
+        </div>
+
+        <div class="help-section">
+          <h3>Modes i simuladors</h3>
+          <ul>
+            <li><strong>Normal vs Resistència</strong>: canvia el rang de durada (5–240 min vs 1–24 h).</li>
+            <li><strong>Simulador</strong>: ajusta la densitat del combustible (kg/L) i el consum extra de la volta de formació. A LMU i RaceRoom apareix l'opció de cotxe híbrid amb VE.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Cursa</h3>
+          <p>La <strong>durada</strong> es transforma en voltes totals fent servir el temps del líder:</p>
+          <span class="help-formula">voltes = sostre(durada / temps_per_volta_líder)</span>
+          <p class="muted">La <strong>volta de formació</strong> afegeix consum extra (1.2x–1.4x el consum normal segons sim) sense afegir voltes a la cursa.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>El meu cotxe</h3>
+          <ul>
+            <li><strong>Dipòsit</strong>: capacitat màxima en litres.</li>
+            <li><strong>Combustible inicial</strong>: amb què surts a la graella.</li>
+            <li><strong>Consum per volta</strong>: el més important. Treu-lo de telemetria o de practique.</li>
+            <li><strong>Cotxe híbrid (VE)</strong> · només LMU/RaceRoom: activa el càlcul de Virtual Energy.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Temps per volta</h3>
+          <p>El <strong>teu temps</strong> calcula el teu nombre de voltes i el consum/minut. El <strong>temps del líder</strong> defineix la distància total de la cursa i serveix per a la comparativa.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Estratègia del líder</h3>
+          <p>Indica quantes <strong>parades</strong> farà el líder. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla. El <strong>consum del líder</strong> és informatiu (no afecta el càlcul propi).</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Pneumàtics (opcional)</h3>
+          <p>Si actives la restricció, indiques quantes voltes duren les gomes. Si les gomes s'esgoten abans que el fuel, et forçaran a parar i ho veuràs reflectit a l'estratègia i al verdicte.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Les meves parades · Auto vs Manual</h3>
+          <ul>
+            <li><strong>Auto</strong>: la calculadora tria el màxim entre les parades que cal per fuel, gomes i VE.</li>
+            <li><strong>Manual</strong>: forces un nombre i veus si és viable.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Marge i temps de pit</h3>
+          <ul>
+            <li><strong>Marge de seguretat</strong>: voltes extra de fuel pel safety car, pèrdues, etc.</li>
+            <li><strong>Pit stop manual</strong>: introdueixes els segons perduts.</li>
+            <li><strong>Pit stop automàtic</strong>: a partir dels temps de volta d'entrada, sortida i normal calcula la pèrdua real:</li>
+          </ul>
+          <span class="help-formula">pèrdua = (entrada + sortida) − 2 × normal</span>
+        </div>
+
+        <div class="help-section">
+          <h3>Veredicte</h3>
+          <ul>
+            <li><span class="c-green"><strong>OK</strong></span>: arribes amb prou marge.</li>
+            <li><span class="c-accent"><strong>JUST</strong></span>: arribes però amb poc marge — considera carregar una mica més.</li>
+            <li><span class="c-red"><strong>PIT</strong></span>: et falta fuel — cal parar.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Batalla vs líder</h3>
+          <p>Compara el teu <strong>temps total de cursa</strong> (voltes × temps + parades) amb el del líder. T'indica si guanyes o perds i desglossa quants segons venen del ritme i quants de les parades.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Deriva vs líder (gràfic)</h3>
+          <p>Mostra com creix el teu <strong>delta acumulat</strong> contra el líder volta a volta. Cada parada és un punt: les teves <span class="c-accent"><strong>en taronja</strong></span>, les del líder <span class="c-blue"><strong>en blau</strong></span>. Quan la teva línia està per sobre del 0, estàs perdent temps.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Estratègia de pit</h3>
+          <p>Pinta els <strong>stints</strong> com a barres proporcionals i diu, per cada parada: <strong>a quina volta</strong>, <strong>quant fuel afegir</strong> i el <strong>motiu</strong> (fuel, gomes, VE o combinacions).</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Mode estalvi</h3>
+          <p>Si t'hi falta poc fuel, et diu quants <strong>litres per volta</strong> hauries d'estalviar per evitar la parada i si és realista:</p>
+          <ul>
+            <li><span class="c-green"><strong>Viable</strong></span>: ≤5% de reducció.</li>
+            <li><span class="c-accent"><strong>Difícil</strong></span>: 5–15%.</li>
+            <li><span class="c-red"><strong>Inviable</strong></span>: més del 15%.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Optimització</h3>
+          <p>Quan les <strong>gomes</strong> o la <strong>VE</strong> et forçen a parar abans que el fuel, pots sortir amb menys combustible. La calculadora et diu quants litres i quants kg estalvies (més lleuger = més pace).</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Virtual Energy (LMU/RaceRoom)</h3>
+          <p>Als híbrids de Hypercar la <strong>VE</strong> és un pressupost d'energia per stint imposat pel reglament. Cada volta consumeixes un % i a 100% has de parar obligatòriament.</p>
+          <ul>
+            <li><strong>VE per volta</strong>: el llegeixes del MFD (típicament ~4% en Hypercars).</li>
+            <li><strong>Voltes màx. per VE</strong> = sostre(100 / VE per volta).</li>
+            <li><strong>Fuel per stint complet</strong> = voltes màx. × consum per volta. És el que has d'omplir per fer un stint complet sense desperdiciar fuel.</li>
+            <li><strong>Presets</strong>: clica P963, SC63, etc. per omplir VE i consum d'una vegada.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>Referència ràpida</h3>
+          <p class="muted">Valors auxiliars: consum/minut, voltes que aguantes amb el fuel actual, fuel per fer la cursa al 100% sense parar, fuel recomanat de sortida i (si és híbrid) mètriques de VE.</p>
+        </div>
+
+        <div class="help-section" style="margin-bottom: 0;">
+          <h3>Notes</h3>
+          <ul>
+            <li>Els valors es <strong>guarden automàticament</strong> al navegador.</li>
+            <li>El <strong>pes del combustible</strong> depèn del simulador (densitat ~0.74–0.75 kg/L).</li>
+            <li>Tot és orientatiu: el consum real varia amb traçat, clima i estil.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <div class="layout">
@@ -978,6 +1320,38 @@
             <span class="field-value">{{ fuelPerLap.toFixed(2) }} L/v</span>
           </div>
           <input type="range" v-model.number="fuelPerLap" min="0.5" max="15" step="0.05">
+        </div>
+        <div class="field" v-if="veSupported">
+          <div class="field-header">
+            <label>Cotxe híbrid (VE)</label>
+            <span class="field-value">{{ hybridCar ? 'Sí' : 'No' }}</span>
+          </div>
+          <input type="range" v-model.number="hybridCar" min="0" max="1" step="1">
+        </div>
+        <div class="field" v-if="showVE">
+          <div class="field-header">
+            <label>VE per volta</label>
+            <span class="field-value">{{ vePerLap.toFixed(1) }} %</span>
+          </div>
+          <input type="range" v-model.number="vePerLap" min="0.5" max="10" step="0.1">
+          <div class="preset-row">
+            <button
+              v-for="p in vePresets"
+              :key="p.id"
+              class="preset-btn"
+              :class="{ active: activeVEPreset === p.id }"
+              @click="applyVEPreset(p)"
+              :title="'VE ' + p.vePerLap + '% / ' + p.fuelPerLap + ' L per volta'"
+            >{{ p.label }}</button>
+          </div>
+          <div class="auto-result">
+            <span class="auto-result-label">Voltes màx. per VE</span>
+            <span class="auto-result-value">{{ maxVELaps }} v</span>
+          </div>
+          <div class="auto-result" style="margin-top: 0.35rem;">
+            <span class="auto-result-label">Fuel per stint complet</span>
+            <span class="auto-result-value">{{ fuelPer100VE.toFixed(1) }} L</span>
+          </div>
         </div>
       </div>
 
@@ -1446,7 +1820,12 @@
             <span class="tag tag-green">–{{ fuelOptimization.saveL.toFixed(1) }} L</span>
           </div>
           <div style="font-size: 0.8rem; color: var(--text-dim);">
-            Els pneumàtics et forcen a parar a la volta {{ fuelOptimization.lap }}. Pots estalviar {{ fuelOptimization.saveKg.toFixed(1) }} kg sortint amb menys combustible i repostar en aquesta parada obligatòria.
+            <template v-if="fuelOptimization.reason === 've'">
+              La VE et limita a {{ fuelOptimization.lap }} voltes per stint. Pots estalviar {{ fuelOptimization.saveKg.toFixed(1) }} kg sortint amb menys combustible i repostar en aquesta parada obligatòria.
+            </template>
+            <template v-else>
+              Els pneumàtics et forcen a parar a la volta {{ fuelOptimization.lap }}. Pots estalviar {{ fuelOptimization.saveKg.toFixed(1) }} kg sortint amb menys combustible i repostar en aquesta parada obligatòria.
+            </template>
           </div>
         </div>
       </template>
@@ -1478,6 +1857,14 @@
           <div class="ref-item">
             <span class="ref-label">Fuel recomanat inici</span>
             <span class="ref-value c-green">{{ recommendedFuel.toFixed(1) }} L</span>
+          </div>
+          <div class="ref-item" v-if="showVE">
+            <span class="ref-label">Voltes màx. per VE</span>
+            <span class="ref-value c-accent">{{ maxVELaps }} v</span>
+          </div>
+          <div class="ref-item" v-if="showVE">
+            <span class="ref-label">Fuel per 100% VE</span>
+            <span class="ref-value c-accent">{{ fuelPer100VE.toFixed(1) }} L</span>
           </div>
         </div>
       </div>
@@ -1535,6 +1922,34 @@ createApp({
     const leaderTireLife = ref(saved.leaderTireLife ?? 40)
     const myPitStopsMode = ref(saved.myPitStopsMode ?? 'auto')
     const myPitStopsManual = ref(saved.myPitStopsManual ?? 1)
+    const showHelp = ref(false)
+    const hybridCar = ref(saved.hybridCar ?? 0)
+    const vePerLap = ref(saved.vePerLap ?? 4.0)
+
+    // VE presets — Hypercars (LMU). Values from racers' reference table; rest are conservative estimates.
+    const vePresets = [
+      { id: 'p963',    label: 'P963',     vePerLap: 4.0, fuelPerLap: 2.09 },
+      { id: 'sc63',    label: 'SC63',     vePerLap: 4.0, fuelPerLap: 2.02 },
+      { id: 'bmwv8',   label: 'BMW V8',   vePerLap: 4.0, fuelPerLap: 2.07 },
+      { id: 'gr010',   label: 'GR010',    vePerLap: 4.0, fuelPerLap: 2.10 },
+      { id: '499p',    label: '499P',     vePerLap: 4.0, fuelPerLap: 2.05 },
+      { id: 'vlmdh',   label: 'V-LMDh',   vePerLap: 4.0, fuelPerLap: 2.08 },
+      { id: '9x8',     label: '9X8',      vePerLap: 4.0, fuelPerLap: 2.06 },
+      { id: 'a424',    label: 'A424',     vePerLap: 4.0, fuelPerLap: 2.04 },
+    ]
+
+    function applyVEPreset(p) {
+      vePerLap.value = p.vePerLap
+      fuelPerLap.value = p.fuelPerLap
+    }
+
+    const activeVEPreset = computed(() => {
+      const match = vePresets.find(p =>
+        Math.abs(p.vePerLap - vePerLap.value) < 0.05 &&
+        Math.abs(p.fuelPerLap - fuelPerLap.value) < 0.005
+      )
+      return match ? match.id : null
+    })
 
     // Persist all params to localStorage
     const allParams = computed(() => ({
@@ -1560,6 +1975,8 @@ createApp({
       leaderTireLife: leaderTireLife.value,
       myPitStopsMode: myPitStopsMode.value,
       myPitStopsManual: myPitStopsManual.value,
+      hybridCar: hybridCar.value,
+      vePerLap: vePerLap.value,
     }))
 
     watch(allParams, (val) => {
@@ -1567,6 +1984,29 @@ createApp({
     }, { deep: true })
 
     const currentSimData = computed(() => sims.find(s => s.id === selectedSim.value))
+
+    // Virtual Energy support — only available in sims that model it
+    const veSupported = computed(() =>
+      ['lmu', 'raceroom'].includes(selectedSim.value)
+    )
+    const showVE = computed(() => veSupported.value && !!hybridCar.value)
+
+    // If the user switches to a sim that doesn't support VE, silently disable it
+    watch(selectedSim, (sim) => {
+      if (!['lmu', 'raceroom'].includes(sim) && hybridCar.value) {
+        hybridCar.value = 0
+      }
+    })
+
+    const maxVELaps = computed(() => {
+      if (!showVE.value || vePerLap.value <= 0) return Infinity
+      return Math.floor(100 / vePerLap.value)
+    })
+
+    const fuelPer100VE = computed(() => {
+      if (!showVE.value) return 0
+      return maxVELaps.value * fuelPerLap.value
+    })
 
     const effectivePitStopTime = computed(() => {
       if (pitStopMode.value === 'auto') {
@@ -1637,12 +2077,19 @@ createApp({
       return Math.max(0, Math.ceil(totalLaps.value / myTireLife.value) - 1)
     })
 
+    const myVEStops = computed(() => {
+      if (!showVE.value || !isFinite(maxVELaps.value)) return 0
+      return Math.max(0, Math.ceil(totalLaps.value / maxVELaps.value) - 1)
+    })
+
     const leaderTireStops = computed(() => {
       if (!tiresEnabled.value || leaderTireLife.value <= 0) return 0
       return Math.max(0, Math.ceil(totalLaps.value / leaderTireLife.value) - 1)
     })
 
-    const myPitStopsAuto = computed(() => Math.max(fuelStops.value, myTireStops.value))
+    const myPitStopsAuto = computed(() =>
+      Math.max(fuelStops.value, myTireStops.value, myVEStops.value)
+    )
 
     const pitStops = computed(() => {
       if (myPitStopsMode.value === 'manual') return myPitStopsManual.value
@@ -1658,19 +2105,20 @@ createApp({
       if (stops === 0) return [{ laps: totalL, fuel: startFuel.value }]
 
       const tireLimit = tiresEnabled.value ? myTireLife.value : Infinity
+      const veLimit = showVE.value ? maxVELaps.value : Infinity
       const lapsPerFullTank = Math.floor((tankCapacity.value - formationFuel.value) / fuelPerLap.value)
       const firstStintFuelLaps = Math.floor((startFuel.value - formationFuel.value) / fuelPerLap.value) - 1 // leave 1 lap margin
       const result = []
       let remaining = totalL
 
-      // First stint — limited by fuel OR tires
-      const s1Laps = Math.min(firstStintFuelLaps, tireLimit, remaining)
+      // First stint — limited by fuel OR tires OR VE
+      const s1Laps = Math.min(firstStintFuelLaps, tireLimit, veLimit, remaining)
       result.push({ laps: Math.max(1, s1Laps), fuel: startFuel.value })
       remaining -= result[0].laps
 
-      // Middle stints — each limited by full tank or tire life
+      // Middle stints — each limited by full tank, tire life, or VE
       for (let i = 1; i < stops; i++) {
-        const cap = Math.min(lapsPerFullTank - 1, tireLimit, remaining)
+        const cap = Math.min(lapsPerFullTank - 1, tireLimit, veLimit, remaining)
         result.push({ laps: Math.max(1, cap), fuel: tankCapacity.value })
         remaining -= result[result.length - 1].laps
       }
@@ -1688,15 +2136,19 @@ createApp({
       const info = []
       let lapCount = 0
       const tireLife = tiresEnabled.value ? myTireLife.value : Infinity
+      const veLimit = showVE.value ? maxVELaps.value : Infinity
       for (let i = 0; i < stints.value.length - 1; i++) {
         lapCount += stints.value[i].laps
         const nextStint = stints.value[i + 1]
         const stintLaps = stints.value[i].laps
         const forcedByTires = tiresEnabled.value && stintLaps >= tireLife
+        const forcedByVE = showVE.value && stintLaps >= veLimit
         const forcedByFuel = nextStint.fuel > stints.value[i].fuel - stintLaps * fuelPerLap.value + 0.5
-        let reason = 'fuel'
-        if (forcedByTires && forcedByFuel) reason = 'both'
-        else if (forcedByTires) reason = 'tires'
+        const causes = []
+        if (forcedByFuel) causes.push('fuel')
+        if (forcedByTires) causes.push('tires')
+        if (forcedByVE) causes.push('ve')
+        const reason = causes.length ? causes.join('+') : 'fuel'
         info.push({
           atLap: lapCount,
           addFuel: nextStint.fuel,
@@ -1804,36 +2256,43 @@ createApp({
       return deltaSeries.value.leaderStops.map(lap => ({ cx: xOf(lap), cy: zeroY, lap }))
     })
 
-    // Fuel optimization hint — when tires force stops earlier than fuel would
+    // Fuel optimization hint — when tires or VE force stops earlier than fuel would
     const fuelOptimization = computed(() => {
-      if (!tiresEnabled.value) return null
-      if (myTireStops.value <= fuelStops.value) return null
-      // Tire stops force us to pit before fuel runs out → can start with less fuel
-      const lapsUntilFirstTireStop = myTireLife.value
+      const tireForceLap = (tiresEnabled.value && myTireStops.value > fuelStops.value)
+        ? myTireLife.value : Infinity
+      const veForceLap = (showVE.value && myVEStops.value > fuelStops.value)
+        ? maxVELaps.value : Infinity
+      const forcedLap = Math.min(tireForceLap, veForceLap)
+      if (!isFinite(forcedLap)) return null
       const optimalStart = Math.min(
         tankCapacity.value,
-        (lapsUntilFirstTireStop + safetyMargin.value) * fuelPerLap.value + formationFuel.value
+        (forcedLap + safetyMargin.value) * fuelPerLap.value + formationFuel.value
       )
       const saveL = Math.max(0, startFuel.value - optimalStart)
       if (saveL < 0.5) return null
       const saveKg = saveL * currentSimData.value.fuelDensity
+      const reason = (veForceLap <= tireForceLap) ? 've' : 'tires'
       return {
-        lap: lapsUntilFirstTireStop,
+        lap: forcedLap,
         optimalStart,
         saveL,
         saveKg,
+        reason,
       }
     })
 
     function pitReasonLabel(r) {
-      if (r === 'tires') return 'gomes'
+      const map = { fuel: 'fuel', tires: 'gomes', ve: 'VE' }
+      // Backward-compat for legacy 'both' key
       if (r === 'both') return 'fuel+gomes'
-      return 'fuel'
+      return r.split('+').map(x => map[x] || x).join('+')
     }
     function pitReasonTagClass(r) {
       if (r === 'tires') return 'tag-blue'
-      if (r === 'both') return 'tag-accent'
-      return 'tag-green'
+      if (r === 've') return 'tag-accent'
+      if (r === 'fuel') return 'tag-green'
+      // Any combination
+      return 'tag-accent'
     }
 
     // Save mode
@@ -1992,6 +2451,9 @@ createApp({
       tiresEnabled, myTireLife, leaderTireLife,
       myPitStopsMode, myPitStopsManual, myPitStopsAuto,
       fuelStops, myTireStops, leaderTireStops,
+      hybridCar, vePerLap, vePresets, applyVEPreset, activeVEPreset,
+      veSupported, showVE, maxVELaps, fuelPer100VE, myVEStops,
+      showHelp,
       totalLaps, myTotalLaps, formationFuel, fuelNeeded, fuelDelta,
       needsPit, anyPitNeeded, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
       fuelWeight, fullRaceFuel, recommendedFuel, effectiveRaceTime,
