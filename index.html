@@ -1414,7 +1414,7 @@
           </div>
           <input type="range" v-model.number="myTireLife" min="5" max="200" step="1">
         </div>
-        <div class="field" v-if="tiresEnabled">
+        <div class="field" v-if="tiresEnabled && compareLeader">
           <div class="field-header">
             <label>Vida pneumàtics (líder)</label>
             <span class="field-value">{{ leaderTireLife }} v</span>
@@ -1779,8 +1779,12 @@
                 </div>
               </div>
               <div class="pit-detail">
-                <div class="pit-detail-label">Afegir combustible</div>
-                <div class="pit-detail-value c-accent">{{ pit.addFuel.toFixed(1) }} L</div>
+                <div class="pit-detail-label">Accions</div>
+                <div class="pit-detail-value" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                  <span class="c-accent">⛽ {{ pit.addFuel.toFixed(1) }} L</span>
+                  <span v-if="pit.changeTires" class="c-blue">🛠 Gomes</span>
+                  <span v-if="pit.resetVE" class="c-accent">⚡ VE</span>
+                </div>
               </div>
             </template>
             <div class="pit-detail">
@@ -2178,6 +2182,8 @@ createApp({
           atLap: lapCount,
           addFuel: nextStint.fuel,
           reason,
+          changeTires: forcedByTires,
+          resetVE: forcedByVE,
         })
       }
       return info
