@@ -1128,6 +1128,10 @@
         @click="selectedSim = sim.id"
       >{{ sim.label }}</button>
     </div>
+    <div class="sim-selector" style="margin-left: 0.5rem;" title="Activa la comparativa amb el líder">
+      <button class="sim-btn" :class="{ active: !compareLeader }" @click="compareLeader = 0">Sol</button>
+      <button class="sim-btn" :class="{ active: compareLeader }" @click="compareLeader = 1">vs Líder</button>
+    </div>
     <button class="help-btn" @click="showHelp = true" title="Ajuda">?</button>
   </div>
 
@@ -1142,7 +1146,7 @@
       <div class="help-body">
 
         <div class="help-tldr">
-          <strong>TL;DR ·</strong> Introdueix la <strong>durada de la cursa</strong>, el teu <strong>consum per volta</strong> i el teu <strong>temps per volta</strong>. La calculadora et diu si arribes amb el fuel que portes, quantes parades necessites, on les has de fer i si guanyaries o perdries la batalla contra el líder amb la teva estratègia.
+          <strong>TL;DR ·</strong> Introdueix la <strong>durada de la cursa</strong>, el teu <strong>consum per volta</strong> i el teu <strong>temps per volta</strong>. La calculadora et diu si arribes amb el fuel que portes, quantes parades necessites i on les has de fer. Activa <strong>vs Líder</strong> a la capçalera per afegir comparativa de temps total, batalla i gràfic de deriva contra el líder.
         </div>
 
         <div class="help-section">
@@ -1150,14 +1154,15 @@
           <ul>
             <li><strong>Normal vs Resistència</strong>: canvia el rang de durada (5–240 min vs 1–24 h).</li>
             <li><strong>Simulador</strong>: ajusta la densitat del combustible (kg/L) i el consum extra de la volta de formació. A LMU i RaceRoom apareix l'opció de cotxe híbrid amb VE.</li>
+            <li><strong>Sol ↔ vs Líder</strong>: el switch de la capçalera. En mode <em>Sol</em> només veus la teva estratègia (més simple). En <em>vs Líder</em> apareixen els camps del líder i les seccions de batalla, deriva i gap.</li>
           </ul>
         </div>
 
         <div class="help-section">
           <h3>Cursa</h3>
-          <p>La <strong>durada</strong> es transforma en voltes totals fent servir el temps del líder:</p>
-          <span class="help-formula">voltes = sostre(durada / temps_per_volta_líder)</span>
-          <p class="muted">La <strong>volta de formació</strong> afegeix consum extra (1.2x–1.4x el consum normal segons sim) sense afegir voltes a la cursa.</p>
+          <p>La <strong>durada</strong> es transforma en voltes totals fent servir el temps de referència:</p>
+          <span class="help-formula">voltes = sostre(durada / temps_volta_ref)</span>
+          <p class="muted">El temps de referència és el del <strong>líder</strong> si la comparativa està activa, o el <strong>teu</strong> si estàs en mode Sol. La <strong>volta de formació</strong> afegeix consum extra (1.2x–1.4x el consum normal segons sim) sense afegir voltes a la cursa.</p>
         </div>
 
         <div class="help-section">
@@ -1177,6 +1182,7 @@
 
         <div class="help-section">
           <h3>Estratègia del líder</h3>
+          <p class="muted">Només visible amb el switch <strong>vs Líder</strong> activat.</p>
           <p>Indica quantes <strong>parades</strong> farà el líder. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla. El <strong>consum del líder</strong> és informatiu (no afecta el càlcul propi).</p>
         </div>
 
@@ -1220,6 +1226,7 @@
         <div class="help-section">
           <h3>Deriva vs líder (gràfic)</h3>
           <p>Mostra com creix el teu <strong>delta acumulat</strong> contra el líder volta a volta. Cada parada és un punt: les teves <span class="c-accent"><strong>en taronja</strong></span>, les del líder <span class="c-blue"><strong>en blau</strong></span>. Quan la teva línia està per sobre del 0, estàs perdent temps.</p>
+          <p class="muted">L'eix Y s'ajusta automàticament al rang real de dades; la línia del líder (0s) només es dibuixa si entra dins del rang visible.</p>
         </div>
 
         <div class="help-section">
@@ -1364,7 +1371,7 @@
           </div>
           <input type="range" v-model.number="myLapTime" min="30" max="600" step="0.5">
         </div>
-        <div class="field">
+        <div class="field" v-if="compareLeader">
           <div class="field-header">
             <label>Temps del líder</label>
             <span class="field-value">{{ formatTime(leaderLapTime) }}</span>
@@ -1373,7 +1380,7 @@
         </div>
       </div>
 
-      <div class="input-group">
+      <div class="input-group" v-if="compareLeader">
         <div class="input-group-title">Estratègia del líder</div>
         <div class="field">
           <div class="field-header">
@@ -1521,6 +1528,7 @@
       </div>
 
       <!-- Battle vs Leader -->
+      <template v-if="compareLeader">
       <div class="section-title fade-in fade-in-2">Batalla vs líder</div>
       <div class="battle-card fade-in fade-in-2" :class="battleDelta <= 0 ? 'battle-win' : 'battle-lose'">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -1607,7 +1615,10 @@
         </div>
       </div>
 
+      </template>
+
       <!-- Delta Chart -->
+      <template v-if="compareLeader">
       <div class="section-title fade-in fade-in-2">Deriva vs líder</div>
       <div class="delta-chart fade-in fade-in-2">
         <div class="delta-chart-legend">
@@ -1616,19 +1627,24 @@
           <span><span class="legend-dot legend-my-stop"></span>Les meves parades</span>
           <span><span class="legend-dot legend-leader-stop"></span>Parades del líder</span>
         </div>
-        <svg :viewBox="'0 0 ' + 800 + ' ' + 220" preserveAspectRatio="none" class="delta-svg">
+        <svg viewBox="0 0 800 230" preserveAspectRatio="xMidYMid meet" class="delta-svg">
           <!-- Axes frame -->
-          <line :x1="50" :y1="20" :x2="50" :y2="190" stroke="var(--border)" stroke-width="1"/>
-          <line :x1="50" :y1="190" :x2="760" :y2="190" stroke="var(--border)" stroke-width="1"/>
-          <!-- Zero line (leader) -->
-          <line :x1="50" :y1="chartZeroY" :x2="760" :y2="chartZeroY" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>
-          <text :x="755" :y="chartZeroY - 4" text-anchor="end" fill="var(--text-dim)" font-family="'JetBrains Mono', monospace" font-size="9">líder · 0s</text>
+          <line :x1="chartFrame.left" :y1="chartFrame.top" :x2="chartFrame.left" :y2="chartFrame.bottom" stroke="var(--border)" stroke-width="1"/>
+          <line :x1="chartFrame.left" :y1="chartFrame.bottom" :x2="chartFrame.right" :y2="chartFrame.bottom" stroke="var(--border)" stroke-width="1"/>
+          <!-- Zero line (leader) — only when 0 is within visible range -->
+          <template v-if="chartShowZero">
+            <line :x1="chartFrame.left" :y1="chartZeroY" :x2="chartFrame.right" :y2="chartZeroY" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <text :x="chartFrame.right - 4" :y="chartZeroY - 4" text-anchor="end" fill="var(--text-dim)" font-family="'JetBrains Mono', monospace" font-size="9">líder · 0s</text>
+          </template>
           <!-- Y axis labels -->
-          <text :x="44" :y="24" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMax) }}</text>
-          <text :x="44" :y="192" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMin) }}</text>
-          <!-- X axis labels -->
-          <text :x="50" :y="208" text-anchor="start" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">v.0</text>
-          <text :x="760" :y="208" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">v.{{ totalLaps }}</text>
+          <text :x="chartFrame.left - 6" :y="chartFrame.top + 4" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMax) }}</text>
+          <text :x="chartFrame.left - 6" :y="(chartFrame.top + chartFrame.bottom) / 2 + 3" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta((chartScale.yMax + chartScale.yMin) / 2) }}</text>
+          <text :x="chartFrame.left - 6" :y="chartFrame.bottom + 2" text-anchor="end" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">{{ formatDelta(chartScale.yMin) }}</text>
+          <!-- X axis ticks + labels -->
+          <g v-for="(t, i) in chartXTicks" :key="'xt-'+i">
+            <line :x1="t.x" :y1="chartFrame.bottom" :x2="t.x" :y2="chartFrame.bottom + 4" stroke="var(--text-muted)" stroke-width="1"/>
+            <text :x="t.x" :y="chartFrame.bottom + 16" text-anchor="middle" fill="var(--text-muted)" font-family="'JetBrains Mono', monospace" font-size="9">v.{{ t.lap }}</text>
+          </g>
           <!-- My delta polyline -->
           <polyline
             v-if="chartPolyline"
@@ -1665,16 +1681,17 @@
           <span>Final: <strong :class="battleDelta > 0 ? 'c-red' : 'c-green'">{{ battleDelta > 0 ? '+' : '' }}{{ battleDelta.toFixed(1) }}s</strong></span>
         </div>
       </div>
+      </template>
 
       <!-- Stats Grid -->
       <div class="section-title fade-in fade-in-2">Dades de cursa</div>
       <div class="stats-grid fade-in fade-in-2">
         <div class="stat-card">
-          <div class="stat-label">Voltes totals (líder)</div>
+          <div class="stat-label">Voltes totals{{ compareLeader ? ' (líder)' : '' }}</div>
           <div class="stat-value">{{ totalLaps }}</div>
           <div class="stat-note" v-if="formationLap">+1 formació</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" v-if="compareLeader">
           <div class="stat-label">Les meves voltes</div>
           <div class="stat-value">{{ myTotalLaps }}</div>
         </div>
@@ -1691,7 +1708,7 @@
             {{ fuelDelta >= 0 ? '+' : '' }}{{ fuelDelta.toFixed(1) }}<span class="stat-unit">L</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" v-if="compareLeader">
           <div class="stat-label">Gap total vs líder</div>
           <div class="stat-value c-accent">
             {{ totalGap >= 0 ? '+' : '' }}{{ totalGap.toFixed(1) }}<span class="stat-unit">s</span>
@@ -1923,6 +1940,7 @@ createApp({
     const myPitStopsMode = ref(saved.myPitStopsMode ?? 'auto')
     const myPitStopsManual = ref(saved.myPitStopsManual ?? 1)
     const showHelp = ref(false)
+    const compareLeader = ref(saved.compareLeader ?? 0)
     const hybridCar = ref(saved.hybridCar ?? 0)
     const vePerLap = ref(saved.vePerLap ?? 4.0)
 
@@ -1977,6 +1995,7 @@ createApp({
       myPitStopsManual: myPitStopsManual.value,
       hybridCar: hybridCar.value,
       vePerLap: vePerLap.value,
+      compareLeader: compareLeader.value,
     }))
 
     watch(allParams, (val) => {
@@ -2035,8 +2054,12 @@ createApp({
 
     // Core calculations
     const raceTimeSeconds = computed(() => raceDuration.value * 60)
-    const totalLaps = computed(() => Math.ceil(raceTimeSeconds.value / leaderLapTime.value))
     const myTotalLaps = computed(() => Math.ceil(raceTimeSeconds.value / myLapTime.value))
+    // When the leader comparison is off, race distance is based on the user's own lap time
+    const totalLaps = computed(() => {
+      if (!compareLeader.value) return myTotalLaps.value
+      return Math.ceil(raceTimeSeconds.value / leaderLapTime.value)
+    })
 
     const formationFuel = computed(() =>
       formationLap.value ? fuelPerLap.value * currentSimData.value.formationMult : 0
@@ -2050,7 +2073,9 @@ createApp({
     const fuelDelta = computed(() => startFuel.value - fuelNeeded.value)
     const needsPit = computed(() => fuelDelta.value < 0)
 
-    const gapPerLap = computed(() => myLapTime.value - leaderLapTime.value)
+    const gapPerLap = computed(() =>
+      compareLeader.value ? myLapTime.value - leaderLapTime.value : 0
+    )
     const totalGap = computed(() => gapPerLap.value * totalLaps.value)
 
     const fuelPerMinute = computed(() => fuelPerLap.value / (myLapTime.value / 60))
@@ -2166,6 +2191,7 @@ createApp({
 
     // Leader pit laps — evenly distributed across the race
     const leaderPitLaps = computed(() => {
+      if (!compareLeader.value) return []
       const n = leaderPitStops.value
       const total = totalLaps.value
       if (n <= 0 || total <= 0) return []
@@ -2178,8 +2204,11 @@ createApp({
 
     // Delta chart series — cumulative delta vs leader per lap
     const deltaSeries = computed(() => {
+      if (!compareLeader.value) {
+        return { points: [], myStops: [], leaderStops: [], step: 1 }
+      }
       const total = totalLaps.value
-      if (total <= 0) return { points: [], myStops: [], leaderStops: [], yMin: 0, yMax: 0, step: 1 }
+      if (total <= 0) return { points: [], myStops: [], leaderStops: [], step: 1 }
 
       const myStopLaps = (pitInfo.value || []).map(p => p.atLap)
       const leaderStopLaps = leaderPitLaps.value
@@ -2202,36 +2231,58 @@ createApp({
         }
       }
 
-      const values = points.map(p => p.delta)
-      const yMin = Math.min(0, ...values)
-      const yMax = Math.max(0, ...values)
-
-      return { points, myStops: myStopLaps, leaderStops: leaderStopLaps, yMin, yMax, step }
+      return { points, myStops: myStopLaps, leaderStops: leaderStopLaps, step }
     })
 
     const chartWidth = 800
-    const chartHeight = 220
-    const chartPad = { top: 20, right: 40, bottom: 30, left: 50 }
+    const chartHeight = 230
+    const chartPad = { top: 18, right: 18, bottom: 30, left: 46 }
+
+    // Drawable plot frame (for axis lines + reference)
+    const chartFrame = computed(() => ({
+      left: chartPad.left,
+      right: chartWidth - chartPad.right,
+      top: chartPad.top,
+      bottom: chartHeight - chartPad.bottom,
+    }))
 
     const chartScale = computed(() => {
-      const d = deltaSeries.value
-      const innerW = chartWidth - chartPad.left - chartPad.right
-      const innerH = chartHeight - chartPad.top - chartPad.bottom
+      const f = chartFrame.value
+      const innerW = f.right - f.left
+      const innerH = f.bottom - f.top
       const total = totalLaps.value || 1
-      let yMin = d.yMin
-      let yMax = d.yMax
-      // Ensure at least some range
-      if (yMax - yMin < 5) {
-        yMin -= 5
-        yMax += 5
+      const points = deltaSeries.value.points
+      const values = points.map(p => p.delta)
+
+      // ----- Y zoom: tight to data, only include 0 if it's near the data range -----
+      let yMin = values.length ? Math.min(...values) : -1
+      let yMax = values.length ? Math.max(...values) : 1
+      const dataRange = Math.max(1, yMax - yMin)
+      // Pull 0 in only if it's within ~30% of the data range, so it stays useful as reference
+      if (yMin > 0 && yMin < dataRange * 0.3) yMin = 0
+      if (yMax < 0 && Math.abs(yMax) < dataRange * 0.3) yMax = 0
+      // Guarantee a minimum visible spread so single-value series don't render as a flat line
+      if (yMax - yMin < 4) {
+        const c = (yMin + yMax) / 2
+        yMin = c - 2
+        yMax = c + 2
       }
-      // Symmetric-ish padding
-      const pad = (yMax - yMin) * 0.1
-      yMin -= pad
-      yMax += pad
-      const xOf = (lap) => chartPad.left + (lap / total) * innerW
-      const yOf = (val) => chartPad.top + ((yMax - val) / (yMax - yMin)) * innerH
+      // 12% vertical padding so the polyline never kisses the frame
+      const yPad = (yMax - yMin) * 0.12
+      yMin -= yPad
+      yMax += yPad
+
+      // ----- X zoom: full race span (0 → totalLaps) with a small inner padding -----
+      const xInnerPad = innerW * 0.025
+      const xOf = (lap) => f.left + xInnerPad + (lap / total) * (innerW - 2 * xInnerPad)
+      const yOf = (val) => f.top + ((yMax - val) / (yMax - yMin)) * innerH
+
       return { xOf, yOf, yMin, yMax, innerW, innerH }
+    })
+
+    const chartShowZero = computed(() => {
+      const s = chartScale.value
+      return 0 >= s.yMin && 0 <= s.yMax
     })
 
     const chartPolyline = computed(() => {
@@ -2239,7 +2290,24 @@ createApp({
       return deltaSeries.value.points.map(p => `${xOf(p.lap).toFixed(1)},${yOf(p.delta).toFixed(1)}`).join(' ')
     })
 
-    const chartZeroY = computed(() => chartScale.value.yOf(0))
+    const chartZeroY = computed(() => {
+      const s = chartScale.value
+      const f = chartFrame.value
+      // Clamp to inside the frame so any visual that uses zeroY stays on-canvas
+      return Math.max(f.top, Math.min(f.bottom, s.yOf(0)))
+    })
+
+    // X-axis tick marks (always 5 ticks: 0%, 25%, 50%, 75%, 100%)
+    const chartXTicks = computed(() => {
+      const total = totalLaps.value
+      if (!compareLeader.value || total <= 0) return []
+      const { xOf } = chartScale.value
+      const fractions = [0, 0.25, 0.5, 0.75, 1]
+      return fractions.map(f => {
+        const lap = Math.round(total * f)
+        return { lap, x: xOf(lap) }
+      })
+    })
 
     const chartMyStopPoints = computed(() => {
       const { xOf, yOf } = chartScale.value
@@ -2363,8 +2431,9 @@ createApp({
     })
 
     const verdictText = computed(() => {
+      const paceRef = compareLeader.value ? 'el ritme del líder' : 'el teu ritme'
       if (!needsPit.value && fuelDelta.value > fuelPerLap.value * 2) {
-        return `Et sobraran ${fuelDelta.value.toFixed(1)}L (~${(fuelDelta.value / fuelPerLap.value).toFixed(1)} voltes extra). Cursa de ${totalLaps.value} voltes basada en el ritme del líder.`
+        return `Et sobraran ${fuelDelta.value.toFixed(1)}L (~${(fuelDelta.value / fuelPerLap.value).toFixed(1)} voltes extra). Cursa de ${totalLaps.value} voltes basada en ${paceRef}.`
       }
       if (!needsPit.value) {
         return `Arribaràs amb ${fuelDelta.value.toFixed(1)}L de marge (${(fuelDelta.value / fuelPerLap.value).toFixed(1)} voltes). Considera portar una mica més per seguretat.`
@@ -2391,10 +2460,13 @@ createApp({
     const myTotalRaceTime = computed(() =>
       totalLaps.value * myLapTime.value + myEffectivePitStops.value * effectivePitStopTime.value
     )
-    const leaderTotalRaceTime = computed(() =>
-      totalLaps.value * leaderLapTime.value + leaderPitStops.value * effectivePitStopTime.value
+    const leaderTotalRaceTime = computed(() => {
+      if (!compareLeader.value) return myTotalRaceTime.value
+      return totalLaps.value * leaderLapTime.value + leaderPitStops.value * effectivePitStopTime.value
+    })
+    const battleDelta = computed(() =>
+      compareLeader.value ? myTotalRaceTime.value - leaderTotalRaceTime.value : 0
     )
-    const battleDelta = computed(() => myTotalRaceTime.value - leaderTotalRaceTime.value)
 
     const myBarWidth = computed(() => {
       const maxTime = Math.max(myTotalRaceTime.value, leaderTotalRaceTime.value)
@@ -2465,8 +2537,10 @@ createApp({
       gaugeStatus, gaugeTagClass,
       myEffectivePitStops, myTotalRaceTime, leaderTotalRaceTime,
       battleDelta, myBarWidth, leaderBarWidth, battleExplanation,
-      deltaSeries, chartPolyline, chartZeroY, chartScale,
+      deltaSeries, chartPolyline, chartZeroY, chartScale, chartFrame,
+      chartShowZero, chartXTicks,
       chartMyStopPoints, chartLeaderStopPoints,
+      compareLeader,
       formatTime, formatRaceTime, formatDelta,
     }
   }
