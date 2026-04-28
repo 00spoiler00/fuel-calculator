@@ -1418,13 +1418,6 @@
           </div>
           <input type="range" v-model.number="myTireLife" min="5" max="200" step="1">
         </div>
-        <div class="field" v-if="tiresEnabled && compareLeader">
-          <div class="field-header">
-            <label>Vida pneumàtics (líder)</label>
-            <span class="field-value">{{ leaderTireLife }} v</span>
-          </div>
-          <input type="range" v-model.number="leaderTireLife" min="5" max="200" step="1">
-        </div>
       </div>
 
       <div class="input-group">
@@ -1943,7 +1936,6 @@ createApp({
     const leaderPitStopsDelta = ref(saved.leaderPitStopsDelta ?? 0)
     const tiresEnabled = ref(saved.tiresEnabled ?? 0)
     const myTireLife = ref(saved.myTireLife ?? 40)
-    const leaderTireLife = ref(saved.leaderTireLife ?? 40)
     const myPitStopsMode = ref(saved.myPitStopsMode ?? 'auto')
     const myPitStopsManual = ref(saved.myPitStopsManual ?? 1)
     const showHelp = ref(false)
@@ -1996,7 +1988,6 @@ createApp({
       leaderPitStopsDelta: leaderPitStopsDelta.value,
       tiresEnabled: tiresEnabled.value,
       myTireLife: myTireLife.value,
-      leaderTireLife: leaderTireLife.value,
       myPitStopsMode: myPitStopsMode.value,
       myPitStopsManual: myPitStopsManual.value,
       hybridCar: hybridCar.value,
@@ -2116,11 +2107,6 @@ createApp({
     const myVEStops = computed(() => {
       if (!showVE.value || !isFinite(maxVELaps.value)) return 0
       return Math.max(0, Math.ceil(totalLaps.value / maxVELaps.value) - 1)
-    })
-
-    const leaderTireStops = computed(() => {
-      if (!tiresEnabled.value || leaderTireLife.value <= 0) return 0
-      return Math.max(0, Math.ceil(totalLaps.value / leaderTireLife.value) - 1)
     })
 
     // -----------------------------------------------------------------------
@@ -2617,9 +2603,9 @@ createApp({
       startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
       pitStopTime, pitStopMode, pitEntryLap, pitExitLap, pitNormalLap,
       effectivePitStopTime, leaderPitStops, currentSimData,
-      tiresEnabled, myTireLife, leaderTireLife,
+      tiresEnabled, myTireLife,
       myPitStopsMode, myPitStopsManual, myPitStopsAuto,
-      fuelStops, myTireStops, leaderTireStops,
+      fuelStops, myTireStops,
       hybridCar, vePerLap, vePresets, applyVEPreset, activeVEPreset,
       veSupported, showVE, maxVELaps, fuelPer100VE, myVEStops,
       showHelp,
