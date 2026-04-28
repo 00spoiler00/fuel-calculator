@@ -1183,7 +1183,7 @@
         <div class="help-section">
           <h3>Estratègia del líder</h3>
           <p class="muted">Només visible amb el switch <strong>vs Líder</strong> activat.</p>
-          <p>Les <strong>parades del líder</strong> s'expressen com a diferència respecte a les teves: <strong>0</strong> = mateixa estratègia, <strong>+1</strong> = una parada més, <strong>−2</strong> = dues menys (sense baixar de zero). El total absolut es mostra al costat del slider. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla. El <strong>consum del líder</strong> és informatiu (no afecta el càlcul propi).</p>
+          <p>Les <strong>parades del líder</strong> s'expressen com a diferència respecte a les teves: <strong>0</strong> = mateixa estratègia, <strong>+1</strong> = una parada més, <strong>−2</strong> = dues menys (sense baixar de zero). El total absolut es mostra al costat del slider. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla.</p>
         </div>
 
         <div class="help-section">
@@ -1399,13 +1399,6 @@
             <span class="field-value">{{ leaderPitStopsDelta >= 0 ? '+' : '' }}{{ leaderPitStopsDelta }} · {{ leaderPitStops }} total</span>
           </div>
           <input type="range" v-model.number="leaderPitStopsDelta" min="-10" max="10" step="1">
-        </div>
-        <div class="field">
-          <div class="field-header">
-            <label>Consum líder (L/volta)</label>
-            <span class="field-value">{{ leaderFuelPerLap.toFixed(2) }} L/v</span>
-          </div>
-          <input type="range" v-model.number="leaderFuelPerLap" min="0.5" max="15" step="0.05">
         </div>
       </div>
 
@@ -1948,7 +1941,6 @@ createApp({
     const pitExitLap = ref(saved.pitExitLap ?? 120)
     const pitNormalLap = ref(saved.pitNormalLap ?? 105)
     const leaderPitStopsDelta = ref(saved.leaderPitStopsDelta ?? 0)
-    const leaderFuelPerLap = ref(saved.leaderFuelPerLap ?? 3.2)
     const tiresEnabled = ref(saved.tiresEnabled ?? 0)
     const myTireLife = ref(saved.myTireLife ?? 40)
     const leaderTireLife = ref(saved.leaderTireLife ?? 40)
@@ -2002,7 +1994,6 @@ createApp({
       pitExitLap: pitExitLap.value,
       pitNormalLap: pitNormalLap.value,
       leaderPitStopsDelta: leaderPitStopsDelta.value,
-      leaderFuelPerLap: leaderFuelPerLap.value,
       tiresEnabled: tiresEnabled.value,
       myTireLife: myTireLife.value,
       leaderTireLife: leaderTireLife.value,
@@ -2625,7 +2616,7 @@ createApp({
       formationLap, tankCapacity,
       startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
       pitStopTime, pitStopMode, pitEntryLap, pitExitLap, pitNormalLap,
-      effectivePitStopTime, leaderPitStops, leaderFuelPerLap, currentSimData,
+      effectivePitStopTime, leaderPitStops, currentSimData,
       tiresEnabled, myTireLife, leaderTireLife,
       myPitStopsMode, myPitStopsManual, myPitStopsAuto,
       fuelStops, myTireStops, leaderTireStops,
