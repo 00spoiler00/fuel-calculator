@@ -1183,19 +1183,24 @@
         <div class="help-section">
           <h3>Estratègia del líder</h3>
           <p class="muted">Només visible amb el switch <strong>vs Líder</strong> activat.</p>
-          <p>Indica quantes <strong>parades</strong> farà el líder. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla. El <strong>consum del líder</strong> és informatiu (no afecta el càlcul propi).</p>
+          <p>Les <strong>parades del líder</strong> s'expressen com a diferència respecte a les teves: <strong>0</strong> = mateixa estratègia, <strong>+1</strong> = una parada més, <strong>−2</strong> = dues menys (sense baixar de zero). El total absolut es mostra al costat del slider. La calculadora les distribueix uniformement al llarg de la cursa per pintar el gràfic de deriva i la batalla. El <strong>consum del líder</strong> és informatiu (no afecta el càlcul propi).</p>
         </div>
 
         <div class="help-section">
           <h3>Pneumàtics (opcional)</h3>
-          <p>Si actives la restricció, indiques quantes voltes duren les gomes. Si les gomes s'esgoten abans que el fuel, et forçaran a parar i ho veuràs reflectit a l'estratègia i al verdicte.</p>
+          <p>Si actives la restricció, indiques <strong>quantes voltes duren les gomes</strong>. La calculadora porta un comptador d'<strong>edat dels pneumàtics que es mantené entre stints</strong> i només es reseteja quan es canvien.</p>
+          <ul>
+            <li>Si les gomes s'esgoten <strong>abans</strong> que el fuel, et forçen a parar abans i el motiu del pit serà <em>gomes</em>.</li>
+            <li>Si duren <strong>més</strong> que un stint però no arriben a dos, et programa el canvi al pit anterior on s'esgotarien (canvi <strong>preventiu</strong>) tot i que la parada sigui per fuel.</li>
+            <li>Si duren <strong>diversos stints</strong>, només les canvia al pit que toca, no abans.</li>
+          </ul>
         </div>
 
         <div class="help-section">
           <h3>Les meves parades · Auto vs Manual</h3>
           <ul>
-            <li><strong>Auto</strong>: la calculadora tria el màxim entre les parades que cal per fuel, gomes i VE.</li>
-            <li><strong>Manual</strong>: forces un nombre i veus si és viable.</li>
+            <li><strong>Auto</strong>: la calculadora construeix el pla òptim de stints respectant alhora <strong>fuel</strong>, <strong>edat dels pneumàtics</strong> (cumulativa) i <strong>VE</strong>. El nombre de parades és el mínim necessari.</li>
+            <li><strong>Manual</strong>: forces un nombre de parades. Si és inferior al mínim viable, la planificació ho mostrarà com a inviable.</li>
           </ul>
         </div>
 
@@ -1231,7 +1236,12 @@
 
         <div class="help-section">
           <h3>Estratègia de pit</h3>
-          <p>Pinta els <strong>stints</strong> com a barres proporcionals i diu, per cada parada: <strong>a quina volta</strong>, <strong>quant fuel afegir</strong> i el <strong>motiu</strong> (fuel, gomes, VE o combinacions).</p>
+          <p>Pinta els <strong>stints</strong> com a barres proporcionals i, per cada parada, mostra:</p>
+          <ul>
+            <li><strong>A quina volta</strong> es fa la parada.</li>
+            <li>El <strong>motiu</strong> que la força (fuel, gomes, VE o combinació) com a etiqueta.</li>
+            <li>Les <strong>accions</strong> a fer al box: <span class="c-accent">⛽ litres a afegir</span>, <span class="c-blue">🛠 Gomes</span> si toca canviar pneumàtics (encara que la parada no sigui per gomes — canvi preventiu), i <span class="c-accent">⚡ VE</span> si la VE és la causa de la parada.</li>
+          </ul>
         </div>
 
         <div class="help-section">
@@ -1270,6 +1280,7 @@
           <ul>
             <li>Els valors es <strong>guarden automàticament</strong> al navegador.</li>
             <li>El <strong>pes del combustible</strong> depèn del simulador (densitat ~0.74–0.75 kg/L).</li>
+            <li>Les <strong>parades del líder</strong> són relatives a les teves (‒10 a +10), de manera que canviar la teva estratègia també actualitza la del líder.</li>
             <li>Tot és orientatiu: el consum real varia amb traçat, clima i estil.</li>
           </ul>
         </div>
@@ -1384,10 +1395,10 @@
         <div class="input-group-title">Estratègia del líder</div>
         <div class="field">
           <div class="field-header">
-            <label>Parades del líder</label>
-            <span class="field-value">{{ leaderPitStops }}</span>
+            <label>Parades del líder (vs jo)</label>
+            <span class="field-value">{{ leaderPitStopsDelta >= 0 ? '+' : '' }}{{ leaderPitStopsDelta }} · {{ leaderPitStops }} total</span>
           </div>
-          <input type="range" v-model.number="leaderPitStops" min="0" :max="leaderPitStopsMax" step="1">
+          <input type="range" v-model.number="leaderPitStopsDelta" min="-10" max="10" step="1">
         </div>
         <div class="field">
           <div class="field-header">
@@ -1936,7 +1947,7 @@ createApp({
     const pitEntryLap = ref(saved.pitEntryLap ?? 120)
     const pitExitLap = ref(saved.pitExitLap ?? 120)
     const pitNormalLap = ref(saved.pitNormalLap ?? 105)
-    const leaderPitStops = ref(saved.leaderPitStops ?? 0)
+    const leaderPitStopsDelta = ref(saved.leaderPitStopsDelta ?? 0)
     const leaderFuelPerLap = ref(saved.leaderFuelPerLap ?? 3.2)
     const tiresEnabled = ref(saved.tiresEnabled ?? 0)
     const myTireLife = ref(saved.myTireLife ?? 40)
@@ -1990,7 +2001,7 @@ createApp({
       pitEntryLap: pitEntryLap.value,
       pitExitLap: pitExitLap.value,
       pitNormalLap: pitNormalLap.value,
-      leaderPitStops: leaderPitStops.value,
+      leaderPitStopsDelta: leaderPitStopsDelta.value,
       leaderFuelPerLap: leaderFuelPerLap.value,
       tiresEnabled: tiresEnabled.value,
       myTireLife: myTireLife.value,
@@ -2047,8 +2058,13 @@ createApp({
       return `${raceDuration.value} min`
     })
 
-    const leaderPitStopsMax = computed(() => raceMode.value === 'endurance' ? 15 : 5)
     const myPitStopsMax = computed(() => raceMode.value === 'endurance' ? 15 : 8)
+
+    // Leader pit count is now expressed as a delta vs the user's own pit count.
+    // Effective leader stops = max(0, mine + delta), so it can never go negative.
+    const leaderPitStops = computed(() =>
+      Math.max(0, pitStops.value + leaderPitStopsDelta.value)
+    )
 
     // Clamp raceDuration when switching modes so the slider position is valid
     watch(raceMode, (mode) => {
@@ -2604,7 +2620,8 @@ createApp({
 
     return {
       sims, selectedSim, raceMode, raceDuration, raceDurationDisplay,
-      leaderPitStopsMax, myPitStopsMax,
+      myPitStopsMax,
+      leaderPitStopsDelta,
       formationLap, tankCapacity,
       startFuel, fuelPerLap, myLapTime, leaderLapTime, safetyMargin,
       pitStopTime, pitStopMode, pitEntryLap, pitExitLap, pitNormalLap,
