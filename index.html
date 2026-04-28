@@ -2116,8 +2116,115 @@ createApp({
       return Math.max(0, Math.ceil(totalLaps.value / leaderTireLife.value) - 1)
     })
 
+    // -----------------------------------------------------------------------
+    // Stint builder — greedy, with cumulative tire-age tracking.
+    //
+    // Tires now wear ACROSS stints: a set that lasts 50 laps will be changed
+    // at whichever pit comes BEFORE its accumulated age would exceed 50, even
+    // if no individual stint is itself longer than 50 laps. This handles:
+    //   - tire life < stint length      → tires force an earlier pit
+    //   - tire life > 1 stint, < 2     → preemptive change at first pit
+    //   - tires last several stints      → only change when needed
+    // -----------------------------------------------------------------------
+    function buildStints(targetStops /* null = auto */) {
+      const totalL = totalLaps.value
+      if (totalL <= 0) return []
+
+      const tireLife = tiresEnabled.value ? myTireLife.value : Infinity
+      const veLimit = showVE.value ? maxVELaps.value : Infinity
+      const lapsPerFullTank = Math.max(1, Math.floor(
+        (tankCapacity.value - formationFuel.value) / fuelPerLap.value
+      ))
+      const firstStintFuelLaps = Math.max(1, Math.floor(
+        (startFuel.value - formationFuel.value) / fuelPerLap.value
+      ) - 1) // leave 1 lap margin
+
+      const isAuto = (targetStops == null)
+      const totalStintsTarget = isAuto ? Infinity : (targetStops + 1)
+      const safetyCap = 60
+
+      const result = []
+      let remaining = totalL
+      let tireAge = 0      // laps run on the current set of tires
+      let isFirst = true
+
+      while (remaining > 0 && result.length < safetyCap) {
+        const fuelLimit = isFirst ? firstStintFuelLaps : (lapsPerFullTank - 1)
+        const tireRemaining = Math.max(1, tireLife - tireAge)
+        const cap = Math.min(fuelLimit, tireRemaining, veLimit, remaining)
+
+        let stintLaps
+        if (!isAuto) {
+          const stintsLeft = totalStintsTarget - result.length
+          if (stintsLeft <= 1) {
+            // Final manual stint takes whatever remains
+            stintLaps = remaining
+          } else {
+            const evenSplit = Math.ceil(remaining / stintsLeft)
+            stintLaps = Math.max(1, Math.min(cap, evenSplit))
+          }
+        } else {
+          stintLaps = Math.max(1, cap)
+        }
+
+        // Identify which constraint actually ended this stint (for pit reason)
+        const reachedFuel = stintLaps >= fuelLimit
+        const reachedTires = tiresEnabled.value && (tireAge + stintLaps) >= tireLife
+        const reachedVE = showVE.value && stintLaps >= veLimit
+        const isLastStint = stintLaps >= remaining
+
+        let stintFuel
+        if (isFirst) {
+          stintFuel = startFuel.value
+        } else if (isLastStint) {
+          stintFuel = Math.min(
+            stintLaps * fuelPerLap.value + fuelPerLap.value * safetyMargin.value,
+            tankCapacity.value
+          )
+        } else {
+          stintFuel = tankCapacity.value
+        }
+
+        const stint = {
+          laps: stintLaps,
+          fuel: stintFuel,
+          tireAgeStart: tireAge,
+          tireAgeEnd: tireAge + stintLaps,
+          forcedByFuel: !isLastStint && reachedFuel,
+          forcedByTires: !isLastStint && reachedTires,
+          forcedByVE: !isLastStint && reachedVE,
+          changeTiresAfter: false,
+        }
+        result.push(stint)
+
+        remaining -= stintLaps
+        tireAge += stintLaps
+        isFirst = false
+
+        // Decide tire change at the upcoming pit (if any)
+        if (remaining > 0) {
+          let projectedNext = Math.min(lapsPerFullTank - 1, veLimit, remaining)
+          if (!isAuto) {
+            const stintsLeft = totalStintsTarget - result.length
+            if (stintsLeft > 0) {
+              projectedNext = Math.min(projectedNext, Math.ceil(remaining / stintsLeft))
+            }
+          }
+          const willExceed = tiresEnabled.value && (tireAge + projectedNext) > tireLife
+          const atEnd = tiresEnabled.value && tireAge >= tireLife
+          stint.changeTiresAfter = willExceed || atEnd
+          if (stint.changeTiresAfter) tireAge = 0
+        }
+      }
+
+      return result
+    }
+
+    // Canonical, minimum-pit, fuel/tire/VE-safe plan
+    const autoStints = computed(() => buildStints(null))
+
     const myPitStopsAuto = computed(() =>
-      Math.max(fuelStops.value, myTireStops.value, myVEStops.value)
+      Math.max(0, autoStints.value.length - 1)
     )
 
     const pitStops = computed(() => {
@@ -2125,65 +2232,41 @@ createApp({
       return myPitStopsAuto.value
     })
 
-    // Needs pit if fuel requires it OR tires force it OR user forced it manually
+    // Needs pit if fuel requires it OR tires/VE force it OR user forced it manually
     const anyPitNeeded = computed(() => pitStops.value > 0)
 
     const stints = computed(() => {
-      const stops = pitStops.value
-      const totalL = totalLaps.value
-      if (stops === 0) return [{ laps: totalL, fuel: startFuel.value }]
-
-      const tireLimit = tiresEnabled.value ? myTireLife.value : Infinity
-      const veLimit = showVE.value ? maxVELaps.value : Infinity
-      const lapsPerFullTank = Math.floor((tankCapacity.value - formationFuel.value) / fuelPerLap.value)
-      const firstStintFuelLaps = Math.floor((startFuel.value - formationFuel.value) / fuelPerLap.value) - 1 // leave 1 lap margin
-      const result = []
-      let remaining = totalL
-
-      // First stint — limited by fuel OR tires OR VE
-      const s1Laps = Math.min(firstStintFuelLaps, tireLimit, veLimit, remaining)
-      result.push({ laps: Math.max(1, s1Laps), fuel: startFuel.value })
-      remaining -= result[0].laps
-
-      // Middle stints — each limited by full tank, tire life, or VE
-      for (let i = 1; i < stops; i++) {
-        const cap = Math.min(lapsPerFullTank - 1, tireLimit, veLimit, remaining)
-        result.push({ laps: Math.max(1, cap), fuel: tankCapacity.value })
-        remaining -= result[result.length - 1].laps
+      if (myPitStopsMode.value === 'manual') {
+        return buildStints(myPitStopsManual.value)
       }
-
-      // Last stint — only need fuel for remaining laps
-      if (remaining > 0) {
-        const lastFuel = remaining * fuelPerLap.value + fuelPerLap.value * safetyMargin.value
-        result.push({ laps: remaining, fuel: Math.min(lastFuel, tankCapacity.value) })
-      }
-
-      return result
+      return autoStints.value
     })
 
     const pitInfo = computed(() => {
       const info = []
       let lapCount = 0
-      const tireLife = tiresEnabled.value ? myTireLife.value : Infinity
-      const veLimit = showVE.value ? maxVELaps.value : Infinity
-      for (let i = 0; i < stints.value.length - 1; i++) {
-        lapCount += stints.value[i].laps
-        const nextStint = stints.value[i + 1]
-        const stintLaps = stints.value[i].laps
-        const forcedByTires = tiresEnabled.value && stintLaps >= tireLife
-        const forcedByVE = showVE.value && stintLaps >= veLimit
-        const forcedByFuel = nextStint.fuel > stints.value[i].fuel - stintLaps * fuelPerLap.value + 0.5
+      const stintList = stints.value
+      for (let i = 0; i < stintList.length - 1; i++) {
+        const stint = stintList[i]
+        const nextStint = stintList[i + 1]
+        lapCount += stint.laps
+
         const causes = []
-        if (forcedByFuel) causes.push('fuel')
-        if (forcedByTires) causes.push('tires')
-        if (forcedByVE) causes.push('ve')
+        if (stint.forcedByFuel) causes.push('fuel')
+        if (stint.forcedByTires) causes.push('tires')
+        if (stint.forcedByVE) causes.push('ve')
         const reason = causes.length ? causes.join('+') : 'fuel'
+
         info.push({
           atLap: lapCount,
           addFuel: nextStint.fuel,
           reason,
-          changeTires: forcedByTires,
-          resetVE: forcedByVE,
+          // changeTires is the planning decision for THIS pit, regardless of
+          // whether tires were the constraint that ended the previous stint:
+          // we may pre-emptively swap to avoid running them past their life
+          // in the next stint.
+          changeTires: !!stint.changeTiresAfter,
+          resetVE: !!stint.forcedByVE,
         })
       }
       return info
