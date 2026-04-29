@@ -1535,19 +1535,19 @@
         <div class="field">
           <div class="field-header">
             <label>Dipòsit (litres)</label>
-            <span class="field-value">{{ tankCapacity }} L</span>
+            <editable-value v-model.number="tankCapacity" :min="10" :max="150" :step="1">{{ tankCapacity }} L</editable-value>
           </div>
           <slider-row v-model.number="tankCapacity" min="10" max="150" step="1"></slider-row>        </div>
         <div class="field">
           <div class="field-header">
             <label>Combustible inicial</label>
-            <span class="field-value">{{ startFuel }} L</span>
+            <editable-value v-model.number="startFuel" :min="1" :max="tankCapacity" :step="0.5">{{ startFuel }} L</editable-value>
           </div>
           <slider-row v-model.number="startFuel" min="1" :max="tankCapacity" step="0.5"></slider-row>        </div>
         <div class="field">
           <div class="field-header">
             <label>Consum per volta</label>
-            <span class="field-value">{{ fuelPerLap.toFixed(2) }} L/v</span>
+            <editable-value v-model.number="fuelPerLap" :min="0.5" :max="15" :step="0.05">{{ fuelPerLap.toFixed(2) }} L/v</editable-value>
           </div>
           <slider-row v-model.number="fuelPerLap" min="0.5" max="15" step="0.05"></slider-row>        </div>
         <div class="field" v-if="veSupported">
@@ -1559,7 +1559,7 @@
         <div class="field" v-if="showVE">
           <div class="field-header">
             <label>VE per volta</label>
-            <span class="field-value">{{ vePerLap.toFixed(1) }} %</span>
+            <editable-value v-model.number="vePerLap" :min="0.5" :max="10" :step="0.1">{{ vePerLap.toFixed(1) }} %</editable-value>
           </div>
           <slider-row v-model.number="vePerLap" min="0.5" max="10" step="0.1"></slider-row>          <div class="preset-row">
             <button
@@ -1619,7 +1619,7 @@
         <div class="field" v-if="tiresEnabled">
           <div class="field-header">
             <label>Vida pneumàtics (jo)</label>
-            <span class="field-value">{{ myTireLife }} v</span>
+            <editable-value v-model.number="myTireLife" :min="5" :max="200" :step="1">{{ myTireLife }} v</editable-value>
           </div>
           <slider-row v-model.number="myTireLife" min="5" max="200" step="1"></slider-row>        </div>
       </div>
@@ -1640,7 +1640,7 @@
           <template v-else>
             <div class="field-header">
               <label>Parades</label>
-              <span class="field-value">{{ myPitStopsManual }}</span>
+              <editable-value v-model.number="myPitStopsManual" :min="0" :max="myPitStopsMax" :step="1">{{ myPitStopsManual }}</editable-value>
             </div>
             <slider-row v-model.number="myPitStopsManual" min="0" :max="myPitStopsMax" step="1"></slider-row>          </template>
         </div>
@@ -1651,7 +1651,7 @@
         <div class="field">
           <div class="field-header">
             <label>Marge de seguretat</label>
-            <span class="field-value">{{ safetyMargin }} volta{{ safetyMargin !== 1 ? 'es' : '' }}</span>
+            <editable-value v-model.number="safetyMargin" :min="0" :max="5" :step="0.5">{{ safetyMargin }} volta{{ safetyMargin !== 1 ? 'es' : '' }}</editable-value>
           </div>
           <slider-row v-model.number="safetyMargin" min="0" max="5" step="0.5"></slider-row>        </div>
         <div class="field">
@@ -1665,7 +1665,7 @@
           <template v-if="pitStopMode === 'manual'">
             <div class="field-header">
               <label>Temps perdut</label>
-              <span class="field-value">{{ pitStopTime }} s</span>
+              <editable-value v-model.number="pitStopTime" :min="10" :max="120" :step="1">{{ pitStopTime }} s</editable-value>
             </div>
             <slider-row v-model.number="pitStopTime" min="10" max="120" step="1"></slider-row>          </template>
 
@@ -2102,6 +2102,60 @@ function loadSaved() {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? JSON.parse(raw) : {}
   } catch { return {} }
+}
+
+const EditableValue = {
+  props: {
+    modelValue: { type: [Number, String], required: true },
+    min: { type: [Number, String], default: -Infinity },
+    max: { type: [Number, String], default: Infinity },
+    step: { type: [Number, String], default: 0.01 },
+    display: { type: String, default: '' },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const editing = Vue.ref(false)
+    const draft = Vue.ref('')
+    const inputRef = Vue.ref(null)
+    function start() {
+      draft.value = String(props.modelValue)
+      editing.value = true
+      Vue.nextTick(() => {
+        if (inputRef.value) {
+          inputRef.value.focus()
+          inputRef.value.select()
+        }
+      })
+    }
+    function commit() {
+      if (!editing.value) return
+      const n = Number(draft.value)
+      editing.value = false
+      if (Number.isFinite(n)) {
+        const clamped = Math.min(Number(props.max), Math.max(Number(props.min), n))
+        emit('update:modelValue', clamped)
+      }
+    }
+    function cancel() {
+      editing.value = false
+    }
+    function onKey(e) {
+      if (e.key === 'Enter') { commit() }
+      else if (e.key === 'Escape') { cancel() }
+    }
+    return { editing, draft, inputRef, start, commit, cancel, onKey }
+  },
+  template: `
+    <input v-if="editing"
+      ref="inputRef"
+      class="inline-input"
+      inputmode="decimal"
+      :value="draft"
+      @input="draft = $event.target.value"
+      @blur="commit"
+      @keydown="onKey">
+    <span v-else class="field-value tappable" @click="start"><slot>{{ display || modelValue }}</slot></span>
+  `
 }
 
 const SliderRow = {
@@ -2921,7 +2975,10 @@ createApp({
       formatTime, formatRaceTime, formatDelta,
     }
   }
-}).component('slider-row', SliderRow).mount('#app')
+})
+  .component('slider-row', SliderRow)
+  .component('editable-value', EditableValue)
+  .mount('#app')
 </script>
 </body>
 </html>
