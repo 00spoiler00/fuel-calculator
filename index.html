@@ -138,6 +138,120 @@
 
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
+      .sidebar, .main-content { overflow-y: visible; }
+      .layout { min-height: 0; }
+      .header { flex-wrap: wrap; padding: 0.75rem 1rem; gap: 0.5rem; }
+      .header h1 { font-size: 1rem; }
+      .header h1 span { display: none; }
+      .sim-selector { margin-left: 0 !important; }
+    }
+
+    /* Mobile sticky results bar */
+    .mobile-sticky {
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .mobile-sticky {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: rgba(17, 17, 22, 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      body { padding-top: 0; }
+      .header { margin-top: 56px; }
+    }
+    .msb-summary {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.9rem;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .msb-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.05rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .msb-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+    .msb-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .msb-chevron {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      transition: transform 0.2s;
+    }
+    .mobile-sticky.expanded .msb-chevron { transform: rotate(180deg); }
+    .msb-panel {
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 0.9rem 0.9rem;
+      max-height: 60vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .msb-panel-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.8rem;
+    }
+    .msb-panel-row .msb-pl { color: var(--text-dim); }
+    .msb-panel-row .msb-pv {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .msb-verdict {
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    /* Collapsible input groups (mobile only) */
+    .input-group-title .chevron {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      transition: transform 0.2s;
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .input-group-title {
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 0;
+      }
+      .input-group:not(.collapsed) .input-group-title { margin-bottom: 0.75rem; }
+      .input-group-title .chevron { display: inline-block; }
+      .input-group.collapsed .chevron { transform: rotate(-90deg); }
+      .input-group.collapsed > :not(.input-group-title) { display: none; }
+      .sidebar { padding: 0.75rem; gap: 0.6rem; }
     }
 
     .sidebar {
@@ -1104,6 +1218,51 @@
 </head>
 <body>
 <div id="app">
+  <!-- Mobile sticky results bar -->
+  <div class="mobile-sticky" :class="{ expanded: stickyExpanded }">
+    <button class="msb-summary" @click="stickyExpanded = !stickyExpanded" aria-label="Resum de resultats">
+      <div class="msb-item">
+        <div class="msb-label">Fuel</div>
+        <div class="msb-value" :class="fuelNeeded > startFuel ? 'c-red' : 'c-green'">{{ fuelNeeded.toFixed(1) }}L</div>
+      </div>
+      <div class="msb-item">
+        <div class="msb-label">Pits</div>
+        <div class="msb-value">{{ pitStops }}</div>
+      </div>
+      <div class="msb-item">
+        <div class="msb-label">Volta</div>
+        <div class="msb-value">{{ formatTime(myLapTime) }}</div>
+      </div>
+      <span class="msb-chevron">▾</span>
+    </button>
+    <div v-if="stickyExpanded" class="msb-panel">
+      <div class="msb-verdict" :class="verdictClass">
+        <strong>{{ verdictIcon }} {{ verdictTitle }}</strong>
+        <div style="margin-top: 0.25rem; color: var(--text-dim);">{{ verdictText }}</div>
+      </div>
+      <div class="msb-panel-row">
+        <span class="msb-pl">Sobrant / Faltant</span>
+        <span class="msb-pv" :class="fuelDelta >= 0 ? 'c-green' : 'c-red'">{{ fuelDelta >= 0 ? '+' : '' }}{{ fuelDelta.toFixed(1) }} L</span>
+      </div>
+      <div class="msb-panel-row">
+        <span class="msb-pl">Voltes totals</span>
+        <span class="msb-pv">{{ totalLaps }}</span>
+      </div>
+      <div class="msb-panel-row">
+        <span class="msb-pl">Fuel recomanat inici</span>
+        <span class="msb-pv c-green">{{ recommendedFuel.toFixed(1) }} L</span>
+      </div>
+      <div class="msb-panel-row">
+        <span class="msb-pl">Pes combustible</span>
+        <span class="msb-pv">{{ fuelWeight.toFixed(1) }} kg</span>
+      </div>
+      <div class="msb-panel-row" v-if="compareLeader">
+        <span class="msb-pl">Gap vs líder</span>
+        <span class="msb-pv c-accent">{{ totalGap >= 0 ? '+' : '' }}{{ totalGap.toFixed(1) }} s</span>
+      </div>
+    </div>
+  </div>
+
   <div class="header">
     <div class="header-icon">⛽</div>
     <h1>Fuel Strategy <span>Simracing Calculator</span></h1>
@@ -1292,8 +1451,8 @@
   <div class="layout">
     <!-- SIDEBAR: INPUTS -->
     <div class="sidebar">
-      <div class="input-group">
-        <div class="input-group-title">Cursa</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('cursa') }">
+        <div class="input-group-title" @click="toggleSection('cursa')">Cursa<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>Duració de la cursa</label>
@@ -1316,8 +1475,8 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="input-group-title">El meu cotxe</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('cotxe') }">
+        <div class="input-group-title" @click="toggleSection('cotxe')">El meu cotxe<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>Dipòsit (litres)</label>
@@ -1373,8 +1532,8 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="input-group-title">Temps per volta</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('temps') }">
+        <div class="input-group-title" @click="toggleSection('temps')">Temps per volta<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>El meu temps</label>
@@ -1391,8 +1550,8 @@
         </div>
       </div>
 
-      <div class="input-group" v-if="compareLeader">
-        <div class="input-group-title">Estratègia del líder</div>
+      <div class="input-group" v-if="compareLeader" :class="{ collapsed: isCollapsed('liderStrat') }">
+        <div class="input-group-title" @click="toggleSection('liderStrat')">Estratègia del líder<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>Parades del líder (vs jo)</label>
@@ -1402,8 +1561,8 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="input-group-title">Pneumàtics</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('pneus') }">
+        <div class="input-group-title" @click="toggleSection('pneus')">Pneumàtics<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>Activar restricció</label>
@@ -1420,8 +1579,8 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="input-group-title">Les meves parades</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('parades') }">
+        <div class="input-group-title" @click="toggleSection('parades')">Les meves parades<span class="chevron">▾</span></div>
         <div class="field">
           <div class="mode-toggle" style="margin-bottom: 0.5rem;">
             <button class="mode-btn" :class="{ active: myPitStopsMode === 'auto' }" @click="myPitStopsMode = 'auto'">Auto</button>
@@ -1443,8 +1602,8 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="input-group-title">Opcions</div>
+      <div class="input-group" :class="{ collapsed: isCollapsed('opcions') }">
+        <div class="input-group-title" @click="toggleSection('opcions')">Opcions<span class="chevron">▾</span></div>
         <div class="field">
           <div class="field-header">
             <label>Marge de seguretat</label>
@@ -1939,6 +2098,26 @@ createApp({
     const myPitStopsMode = ref(saved.myPitStopsMode ?? 'auto')
     const myPitStopsManual = ref(saved.myPitStopsManual ?? 1)
     const showHelp = ref(false)
+    const stickyExpanded = ref(false)
+
+    const COLLAPSE_KEY = 'fuel-strategy-collapsed'
+    const defaultCollapsed = {
+      cursa: false,
+      cotxe: false,
+      temps: false,
+      liderStrat: true,
+      pneus: true,
+      parades: true,
+      opcions: true,
+    }
+    let savedCollapsed = {}
+    try { savedCollapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}') } catch {}
+    const collapsedSections = ref({ ...defaultCollapsed, ...savedCollapsed })
+    function isCollapsed(key) { return !!collapsedSections.value[key] }
+    function toggleSection(key) {
+      collapsedSections.value = { ...collapsedSections.value, [key]: !collapsedSections.value[key] }
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedSections.value))
+    }
     const compareLeader = ref(saved.compareLeader ?? 0)
     const hybridCar = ref(saved.hybridCar ?? 0)
     const vePerLap = ref(saved.vePerLap ?? 4.0)
@@ -2609,6 +2788,8 @@ createApp({
       hybridCar, vePerLap, vePresets, applyVEPreset, activeVEPreset,
       veSupported, showVE, maxVELaps, fuelPer100VE, myVEStops,
       showHelp,
+      stickyExpanded,
+      isCollapsed, toggleSection,
       totalLaps, myTotalLaps, formationFuel, fuelNeeded, fuelDelta,
       needsPit, anyPitNeeded, gapPerLap, totalGap, fuelPerMinute, lapsWithFuel,
       fuelWeight, fullRaceFuel, recommendedFuel, effectiveRaceTime,
