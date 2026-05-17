@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,36 +7,128 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Boldonse&display=swap">
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@200,300,400,500,600,700,800,900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
   <style>
-    :root {
-      --bg-deep: #0a0a0c;
-      --bg-panel: #111116;
-      --bg-card: #18181f;
-      --bg-input: #1e1e27;
-      --border: #2a2a35;
-      --border-hover: #3a3a48;
-      --text: #e8e8ef;
-      --text-dim: #8888a0;
-      --text-muted: #555568;
-      --accent: #f59e0b;
-      --accent-glow: rgba(245, 158, 11, 0.15);
-      --accent-bright: #fbbf24;
-      --green: #22c55e;
-      --green-glow: rgba(34, 197, 94, 0.15);
-      --red: #ef4444;
-      --red-glow: rgba(239, 68, 68, 0.15);
-      --blue: #3b82f6;
-      --blue-glow: rgba(59, 130, 246, 0.12);
-      --orange: #f97316;
-      --carbon-1: rgba(255,255,255,0.02);
-      --carbon-2: rgba(255,255,255,0.04);
-    }
+/* --- MONOLITH:START variant=monolith version=0.1.0 --- */
+:root {
+  --color-base-0: oklch(11% 0.005 240);
+  --color-base-1: oklch(16% 0.005 240);
+  --color-base-2: oklch(22% 0.005 240);
+  --color-base-3: oklch(30% 0.005 240);
+  --color-base-4: oklch(42% 0.005 240);
+  --color-base-5: oklch(60% 0.005 240);
+  --color-bone-0: oklch(97% 0.005 85);
+  --color-bone-1: oklch(93% 0.005 85);
+  --color-bone-2: oklch(88% 0.008 85);
+  --color-bone-3: oklch(80% 0.008 85);
+  --color-bone-4: oklch(65% 0.01 80);
+  --color-bone-5: oklch(50% 0.012 80);
+  --color-oxide-0: oklch(62% 0.06 130);
+  --color-oxide-1: oklch(52% 0.07 130);
+  --color-oxide-2: oklch(72% 0.05 130);
+  --color-oxide-3: oklch(85% 0.04 130);
+  --color-oxide-4: oklch(42% 0.09 130);
+  --color-rust-0: oklch(56% 0.10 40);
+  --color-rust-1: oklch(46% 0.11 40);
+  --color-rust-2: oklch(72% 0.06 40);
+  --color-amber-0: oklch(75% 0.08 80);
+  --color-amber-1: oklch(65% 0.09 80);
+  --color-amber-2: oklch(85% 0.05 80);
+  --color-cobalt-0: oklch(58% 0.08 240);
+  --color-cobalt-1: oklch(48% 0.09 240);
+  --color-pure-black: oklch(0% 0 0);
+  --color-pure-white: oklch(100% 0 0);
+  --font-display-stack: "Boldonse", "Impact", "Helvetica Neue", system-ui, sans-serif;
+  --font-body-stack: "Switzer", "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono-stack: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+}
+
+:root, :root[data-theme="dark"] {
+  --surface-base: var(--color-base-0);
+  --surface-raised: var(--color-base-1);
+  --surface-sunken: var(--color-base-0);
+  --surface-overlay: var(--color-base-2);
+  --text-primary: var(--color-bone-0);
+  --text-secondary: var(--color-bone-3);
+  --text-muted: var(--color-base-5);
+  --text-disabled: var(--color-base-4);
+  --text-accent: var(--color-oxide-0);
+  --border-subtle: var(--color-base-2);
+  --border-default: var(--color-base-3);
+  --border-strong: var(--color-base-4);
+  --signal-accent: var(--color-oxide-0);
+  --signal-accent-hover: var(--color-oxide-2);
+  --signal-accent-active: var(--color-oxide-1);
+  --signal-danger: var(--color-rust-0);
+  --signal-warning: var(--color-amber-0);
+  --signal-success: var(--color-oxide-0);
+  --signal-info: var(--color-cobalt-0);
+  --focus-ring: var(--color-oxide-0);
+  --input-bg: var(--color-base-1);
+}
+
+:root[data-theme="light"] {
+  --surface-base: var(--color-bone-0);
+  --surface-raised: var(--color-bone-1);
+  --surface-sunken: var(--color-bone-2);
+  --surface-overlay: var(--color-base-1);
+  --text-primary: var(--color-base-0);
+  --text-secondary: var(--color-bone-5);
+  --text-muted: var(--color-bone-4);
+  --text-disabled: var(--color-bone-3);
+  --text-accent: var(--color-oxide-1);
+  --border-subtle: var(--color-bone-2);
+  --border-default: var(--color-bone-3);
+  --border-strong: var(--color-bone-4);
+  --signal-accent: var(--color-oxide-1);
+  --signal-accent-hover: var(--color-oxide-0);
+  --signal-accent-active: var(--color-oxide-4);
+  --signal-danger: var(--color-rust-1);
+  --signal-warning: var(--color-amber-1);
+  --signal-success: var(--color-oxide-1);
+  --signal-info: var(--color-cobalt-1);
+  --focus-ring: var(--color-oxide-1);
+  --input-bg: var(--color-bone-0);
+}
+/* --- MONOLITH:END --- */
+
+/* --- MONOLITH:remap-legacy:START --- */
+:root {
+  --bg-deep: var(--surface-base);
+  --bg-panel: var(--surface-raised);
+  --bg-card: var(--surface-raised);
+  --bg-input: var(--input-bg);
+  --border: var(--border-default);
+  --border-hover: var(--border-strong);
+  --text: var(--text-primary);
+  --text-dim: var(--text-secondary);
+  --accent: var(--signal-accent);
+  --accent-glow: color-mix(in oklch, var(--signal-accent) 18%, transparent);
+  --accent-bright: var(--signal-accent-hover);
+  --green: var(--signal-success);
+  --green-glow: color-mix(in oklch, var(--signal-success) 18%, transparent);
+  --red: var(--signal-danger);
+  --red-glow: color-mix(in oklch, var(--signal-danger) 18%, transparent);
+  --blue: var(--signal-info);
+  --blue-glow: color-mix(in oklch, var(--signal-info) 14%, transparent);
+  --orange: var(--signal-warning);
+  --carbon-1: rgba(255,255,255,0.02);
+  --carbon-2: rgba(255,255,255,0.04);
+}
+/* --- MONOLITH:remap-legacy:END --- */
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Outfit', sans-serif;
+      font-family: var(--font-body-stack);
       background: var(--bg-deep);
       color: var(--text);
       min-height: 100vh;
@@ -956,7 +1048,7 @@
       border: 1px solid var(--border);
       background: var(--bg-input);
       color: var(--text-dim);
-      font-family: 'Outfit', sans-serif;
+      font-family: var(--font-body-stack);
       font-size: 1rem;
       font-weight: 700;
       cursor: pointer;

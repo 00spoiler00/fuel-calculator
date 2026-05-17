@@ -1,0 +1,8 @@
+{
+  "variant": "monolith",
+  "version": "0.1.0",
+  "appliedAt": "2026-05-17",
+  "mode": "single-file-html",
+  "target": "index.html",
+  "notes": "Hand-port: Monolith CSS vars injected inline (MONOLITH:START/END block) plus a legacy-token remap. No build system; fonts via <link>. Re-running /apply-design will not work via the theme CLI — edit the MONOLITH block in index.html directly."
+}
